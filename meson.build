@@ -12,7 +12,8 @@ bash = find_program('bash')
 n64_tool_path = '/home/lucas.fryzek/.local/' # TODO replace this with not hardcoded value
 src_dir = './libhfx_src/'
 src_files = [
-    'main.c',
+    'src/main.c',
+    'src/hfx.c',
 ]
 
 ucode_src_dir = './ucode_src/'
@@ -22,11 +23,12 @@ ucode_files = [
     'hfx_cmd_nop.s',
     'hfx_cmd_dma_read.s',
 ]
-ucode_loader = 'libhfx_src/linker.s'
+ucode_loader = 'libhfx_src/src/linker.s'
 
 # Change compiler flags here
 cflags = [
 '-I'+meson.source_root()+'/include',
+'-I'+meson.source_root()+'/libhfx_src/include',
 '-std=gnu99',
 '-march=r4000',
 '-mtune=r4000',

@@ -6,7 +6,8 @@
 #include <libdragon.h>
 #include <rsp.h>
 #include <rdp.h>
-#include <hfx.h>
+
+#include "hfx.h"
 
 #define RB_SIZE 1024
 
