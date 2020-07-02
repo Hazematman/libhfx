@@ -133,8 +133,6 @@ unfixed_binary = custom_target('unfixed_binary',
     input: bin_file,
     command : [n64tool, '-l', '2M', '-h', n64_tool_path+'/mips64-elf/lib/header', '-o', '@OUTPUT@', '@INPUT@'])
 
-#run_target('fixed_binary', command : [chksum64, unfixed_binary])
-
 fixed_binary = custom_target('fixed_binary',
     output : 'prog2.z64', # TODO find out if this is okay 
     input : unfixed_binary,
