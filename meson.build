@@ -17,6 +17,7 @@ src_files = [
     'src/hfx_rb.c',
     'src/hfx_cmd_dma.c',
     'src/hfx_cmd.c',
+    'src/hfx_display.c',
 ]
 
 ucode_src_dir = './ucode_src/'

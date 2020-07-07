@@ -10,10 +10,14 @@
 #define HFX_REG_RB_START        0x0010
 #define HFX_REG_RB_END          0x0014
 
+#define HFX_CMD_ARG_MASK        0xFF00
+#define HFX_CMD_ARG_SHIFT       8
 #define HFX_TOTAL_CMDS          0x0020
 
 #define HFX_CMD_NOP             0x0000
 #define HFX_CMD_INT             0x0001
-#define HFX_CMD_DMA_READ        0x0002
+#define HFX_CMD_DMA             0x0002
+#define     HFX_CMD_DMA_TYPE_READ (0 << HFX_CMD_ARG_SHIFT)    
+#define HFX_CMD_SET_DISPLAY     0x0003
 
 #endif

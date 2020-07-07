@@ -38,6 +38,9 @@ hfx_state *hfx_init()
     
     run_ucode();
 
+
+    hfx_cmd_register_display(&state);
+
     return &state;
 }
 

@@ -8,4 +8,6 @@ hfx_state *hfx_init();
 void hfx_register_rsp_int(hfx_state *state, void *func_ptr);
 void hfx_restart_rsp(hfx_state *state);
 
+void hfx_swap_buffers(hfx_state *state);
+
 #endif
