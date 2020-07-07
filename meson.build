@@ -2,6 +2,7 @@ project('libhfx')
 fs = import('fs')
 mips_compiler = find_program('mips64-elf-gcc')
 mips_linker = find_program('mips64-elf-ld')
+mips_ar = find_program('mips64-elf-ar')
 mips_objcopy = find_program('mips64-elf-objcopy')
 n64tool = find_program('n64tool')
 chksum64 = find_program('chksum64')
@@ -12,8 +13,10 @@ bash = find_program('bash')
 n64_tool_path = '/home/lucas.fryzek/.local/' # TODO replace this with not hardcoded value
 src_dir = './libhfx_src/'
 src_files = [
-    'src/main.c',
     'src/hfx.c',
+    'src/hfx_rb.c',
+    'src/hfx_cmd_dma.c',
+    'src/hfx_cmd.c',
 ]
 
 ucode_src_dir = './ucode_src/'
@@ -118,25 +121,9 @@ object_generator = generator(mips_compiler,
     depfile : '@BASENAME@.d')
 object_files = object_generator.process(src)
 
-# TODO change this so we build library and tests are real applications
-# Build final elf file
-elf_file = custom_target('elf',
-    output : 'prog.elf',
+# Build library file
+libhfx = custom_target('libhfx',
+    output : 'libhfx.a',
     input : [object_files] + [ucode_link],
-    command : [mips_linker] + ['-o', '@OUTPUT@', '@INPUT@'] + ldflags)
-    
-bin_file = custom_target('bin',
-    output : 'prog.bin',
-    input : elf_file,
-    command : [mips_objcopy, '@INPUT@', '@OUTPUT@', '-O', 'binary'])
-    
-unfixed_binary = custom_target('unfixed_binary',
-    output : 'prog.z64',
-    input: bin_file,
-    command : [n64tool, '-l', '2M', '-h', n64_tool_path+'/mips64-elf/lib/header', '-o', '@OUTPUT@', '@INPUT@'])
-
-fixed_binary = custom_target('fixed_binary',
-    output : 'prog2.z64', # TODO find out if this is okay 
-    input : unfixed_binary,
-    command : [chksum64, '@INPUT@'], build_by_default:true)
-    
+    command : [mips_ar, 'rcs', '@OUTPUT@', '@INPUT@'],
+    build_by_default:true)
