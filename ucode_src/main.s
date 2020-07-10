@@ -5,6 +5,10 @@
 .text
 __start:
     move REG_RB_END, $zero // Load RB_END registers with zero
+
+    /* Setup RDP */
+    jal hfx_rdp_init
+        nop
     
     /* Commands are processed like this:
         1. Check if RB_END needs to be updated
@@ -73,6 +77,12 @@ hfx_registers:
 .global hfx_rb_buffer
 hfx_rb_buffer:
     .fill 1024
+
+// Reserve memory for RDP command buffer
+.balign 8
+.global hfx_rdp_buffer
+hfx_rdp_buffer:
+    .fill HFX_RDP_BUFFER_SIZE
  
 /* Ensure that this matches hfx.h */
 // TODO find our if we can auto generate this so that it always matches hfx.h
@@ -81,3 +91,4 @@ offset_table:
     .word hfx_cmd_nop
     .word hfx_cmd_int
     .word hfx_cmd_dma_read
+    .word hfx_cmd_set_display

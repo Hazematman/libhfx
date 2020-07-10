@@ -23,9 +23,12 @@ src_files = [
 ucode_src_dir = './ucode_src/'
 ucode_files = [
     'main.s',
+    'hfx_rdp.s',
     'hfx_cmd_int.s',
     'hfx_cmd_nop.s',
     'hfx_cmd_dma_read.s',
+    'hfx_cmd_set_display.s',
+
 ]
 ucode_loader = 'libhfx_src/src/linker.s'
 
