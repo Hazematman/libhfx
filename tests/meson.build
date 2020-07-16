@@ -10,7 +10,7 @@ prj_root = meson.source_root() + '/..'
 
 #####################################
 # Add new tests & files here
-n64_tool_path = '/home/lucas.fryzek/.local/' # TODO replace this with not hardcoded value
+n64_tool_path = '/home/lucas.fryzek/.local/n64_toolchain/' # TODO replace this with not hardcoded value
 
 test_dict = {
     'basic_rb_test' : [
@@ -23,8 +23,8 @@ cflags = [
 '-I'+prj_root+'/include',
 '-I'+prj_root+'/libhfx_src/include',
 '-std=gnu99',
-'-march=r4000',
-'-mtune=r4000',
+'-march=vr4300',
+'-mtune=vr4300',
 '-O0',
 '-Wall',
 '-MMD',
@@ -33,11 +33,14 @@ cflags = [
 ldflags = [
 '-L'+n64_tool_path+'mips64-elf/lib',
 '-L'+prj_root+'/build',
+'-L'+meson.source_root()+'/build',
+'--start-group',
 '-lhfx',
 '-ldragon',
 '-lc',
 '-lm',
 '-ldragonsys',
+'--end-group',
 '-Tn64.ld',
 ]
 

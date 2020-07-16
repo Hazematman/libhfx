@@ -10,7 +10,6 @@ bash = find_program('bash')
 
 #####################################
 # Add new files here
-n64_tool_path = '/home/lucas.fryzek/.local/' # TODO replace this with not hardcoded value
 src_dir = './libhfx_src/'
 src_files = [
     'src/hfx.c',
@@ -37,20 +36,11 @@ cflags = [
 '-I'+meson.source_root()+'/include',
 '-I'+meson.source_root()+'/libhfx_src/include',
 '-std=gnu99',
-'-march=r4000',
-'-mtune=r4000',
+'-march=vr4300',
+'-mtune=vr4300',
 '-O0',
 '-Wall',
 '-MMD',
-]
-
-ldflags = [
-'-L'+n64_tool_path+'mips64-elf/lib',
-'-ldragon',
-'-lc',
-'-lm',
-'-ldragonsys',
-'-Tn64.ld',
 ]
 
 ucode_cflags = [
