@@ -74,7 +74,7 @@ ucode_define_string = '-DTEXT_SECTION_BIN="@0@" -DDATA_SECTION_BIN="@1@"'
 ucode_linker_script = custom_target('ucode_linker_script',
     output : 'ucode.ld',
     input : 'ucode_template.ld',
-    command : [bash, '-c', 'export BUILD_DIR=ucode_elf@cus; envsubst < @INPUT@'], # hardcode ucode_elf@cus for now
+    command : [bash, '-c', 'export BUILD_DIR=ucode.elf.p; envsubst < @INPUT@'], # hardcode ucode_elf@cus for now
     capture : true )
 
 ucode_obj_generator = generator(mips_compiler,

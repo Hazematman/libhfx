@@ -2,13 +2,11 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>
-
-#include <libdragon.h>
 #include <hfx.h>
 #include <hfx_rb.h>
 #include <hfx_cmds.h>
 #include <hfx_int.h>
-#include <rsp.h>
+#include <libdragon.h>
 
 static resolution_t res = RESOLUTION_320x240;
 static bitdepth_t bit = DEPTH_16_BPP;
@@ -19,10 +17,12 @@ static uint32_t buffer[1024] __attribute__((aligned(8)));
 
 static int done = 1;
 
-static void rsp_done()
+
+static display_context_t disp = 0;
+
+static void hfx_int()
 {
     done = 0;
-    printf("RSP status 0x%lx\n", *((volatile uint32_t*)(0xA4040010)));
 }
 
 int main(void)
@@ -32,18 +32,20 @@ int main(void)
 
     /* Initialize peripherals */
     display_init( res, bit, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE );
-    console_init();
-    console_set_render_mode(RENDER_MANUAL);
-    console_clear();
 
     hfx_state *state = hfx_init();
-    hfx_register_rsp_int(state, rsp_done);
+    hfx_register_rsp_int(state, hfx_int);
 
     hfx_cmd_dma_read_to_rsp(state, 2048, &array, sizeof(array));
     hfx_cmd_int(state);
     hfx_cmd_dma_read_to_rsp(state, 2048, &array2, sizeof(array));
     hfx_cmd_int(state);
     hfx_rb_submit(state);
+
+
+    console_init();
+    console_set_render_mode(RENDER_MANUAL);
+    console_clear();
 
         
     printf("Running\n");
