@@ -6,9 +6,9 @@
 
 #define RB_SIZE 1024
 
-extern const void __ucode_data_start;
-extern const void __ucode_start;
-extern const void __ucode_end;
+extern const void _hfx_ucode_data_start;
+extern const void _hfx_ucode_start;
+extern const void _hfx_ucode_end;
 
 static hfx_state state __attribute__((aligned(8)));
 
@@ -25,16 +25,16 @@ hfx_state *hfx_init()
     rsp_init();
     
     /* Set RB pointer and size in ucode data */
-    uint32_t data_size = (uint32_t) (&__ucode_start - &__ucode_data_start);
-    uint32_t ucode_size = (uint32_t) (&__ucode_end - &__ucode_start);
+    uint32_t data_size = (uint32_t) (&_hfx_ucode_start - &_hfx_ucode_data_start);
+    uint32_t ucode_size = (uint32_t) (&_hfx_ucode_end - &_hfx_ucode_start);
     
-    uint32_t *data_ptr = (uint32_t*)&__ucode_data_start;
+    uint32_t *data_ptr = (uint32_t*)&_hfx_ucode_data_start;
     data_ptr[HFX_REG_RB_ADDR/4] = (uint32_t)&state.rb;
     data_ptr[HFX_REG_RB_SIZE/4] = HFX_RB_SIZE;
     data_cache_hit_writeback_invalidate(data_ptr, data_size);
     
-    load_data((void*)&__ucode_data_start, data_size);
-    load_ucode((void*)&__ucode_start, ucode_size);
+    load_data((void*)&_hfx_ucode_data_start, data_size);
+    load_ucode((void*)&_hfx_ucode_start, ucode_size);
     
     run_ucode();
 
