@@ -17,6 +17,10 @@ hfx_rdp_init:
 
 .global hfx_rdp_reserve
 hfx_rdp_reserve:
+    ld $t0, %lo(hfx_registers + HFX_REG_RDP_START)($0)
+    ld $t1, %lo(hfx_registers + HFX_REG_RDP_END)($0)
+    /* calculate RDP RB size */
+    sub $t0, $t1, $t0
     jr  $ra
         nop
 
