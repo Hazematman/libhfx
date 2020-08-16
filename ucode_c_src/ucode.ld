@@ -9,13 +9,13 @@ SECTIONS
     {
         .text 
         { 
-            "${BUILD_DIR}/crt.o"(.text)
+            "crt.o"(.text)
             *(.text*) 
         }
 
         .data 
         {
-            "${BUILD_DIR}/crt.o"(.data)
+            "crt.o"(.data)
             *(.data* .sdata*)
         }
     } > ROM

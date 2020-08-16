@@ -58,7 +58,7 @@ int main(void)
             done = 1;
             read_data(buffer, 4096);
             printf("Buffer values %lu %lu %lu %lu\n", buffer[512], buffer[513], buffer[514], buffer[515]);
-            printf("Pointers are %lu %lu\n", buffer[HFX_REG_RB_ADDR/4], buffer[HFX_REG_RB_START/4]);
+            printf("Pointers are %lu %lu\n", buffer[HFX_REG_RB_END/4], buffer[HFX_REG_RB_START/4]);
             printf("PC value 0x%lx\n", *(volatile uint32_t *) 0xA4080000);
             console_render();
             

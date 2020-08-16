@@ -19,17 +19,12 @@ src_files = [
     'src/hfx_display.c',
 ]
 
-ucode_src_dir = './ucode_src/'
+ucode_src_dir = './ucode_c_src/'
 ucode_files = [
-    'main.s',
-    'hfx_rdp.s',
-    'hfx_cmd_int.s',
-    'hfx_cmd_nop.s',
-    'hfx_cmd_dma_read.s',
-    'hfx_cmd_set_display.s',
-
+    'crt.S',
+    'hfx_ucode.c',
 ]
-ucode_loader = 'libhfx_src/src/linker.s'
+ucode_loader = 'libhfx_src/src/linker.S'
 
 # Change compiler flags here
 cflags = [
@@ -46,13 +41,25 @@ cflags = [
 ucode_cflags = [
 '-I'+meson.source_root()+'/include',
 '-std=gnu99',
-'-march=r4000',
-'-mtune=r4000',
-'-O0',
+'-march=vr4300',
+'-mtune=vr4300',
+'-Os',
 '-Wall',
-'-x',
-'assembler-with-cpp',
+'-mabi=eabi',
+'-mgp32',
+'-flto',
 '-MMD',
+]
+
+ucode_ldflags = [
+'-march=vr4300',
+'-mtune=vr4300',
+'-mabi=eabi',
+'-mgp32',
+'-ffreestanding',
+'-nostdlib',
+'-flto',
+'-Os',
 ]
 
 #####################################
@@ -89,7 +96,7 @@ ucode_obj_files = ucode_obj_generator.process(ucode_src_files)
 ucode_elf_file = custom_target('ucode_elf',
    output : 'ucode.elf',
    input : ucode_obj_files,
-   command : [mips_linker, '@INPUT@', '-o', '@OUTPUT@', '-T', ucode_linker_script])
+   command : [mips_compiler] + ucode_ldflags + ['@INPUT@', '-o', '@OUTPUT@', '-T', ucode_linker_script])
    
 # convert ucode elf into bin files
 ucode_bin = custom_target('ucode_bin',
@@ -104,7 +111,7 @@ ucode_link = custom_target('ucode_link',
     input : ucode_loader,
     depfile : '@BASENAME@.d',
     depends: ucode_bin,
-    command : [mips_compiler] + ucode_cflags + 
+    command : [mips_compiler] + cflags + 
               ucode_define_string.format(ucode_bin[0].full_path(), ucode_bin[1].full_path()).split() +
               ['-c', '@INPUT@', '-o', '@OUTPUT@'])
               
