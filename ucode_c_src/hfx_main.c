@@ -1,5 +1,6 @@
 #include <hfx_cmds.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
@@ -18,6 +19,7 @@ void hfx_check_rb_ptr()
     if(hfx_rb_end != rb_end)
     {
         /* Setup DMA transfer registers */
+        // TODO only copy data we need to
         asm volatile ("mtc0 %0, $0\n"
                       "mtc0 %1, $1\n"
                       "mtc0 %2, $2"
@@ -38,7 +40,7 @@ void hfx_check_rb_ptr()
     return;
 }
 
-void hfx_cmd_dma(uint32_t rb_start)
+void hfx_cmd_dma(bool write, uint32_t rb_start)
 {
     uint32_t dma_dmem_addr = HFX_READ_RB(1);
     uint32_t dma_mem_addr = HFX_READ_RB(2);
@@ -47,11 +49,17 @@ void hfx_cmd_dma(uint32_t rb_start)
 
     /* Setup DMA transfer registers */
     asm volatile ("mtc0 %0, $0\n"
-                  "mtc0 %1, $1\n"
-                  "mtc0 %2, $2"
+                  "mtc0 %1, $1"
                   :: "r"(dma_dmem_addr),
-                     "r"(dma_mem_addr),
-                     "r"(dma_size));
+                     "r"(dma_mem_addr));
+    if(write)
+    {
+        asm volatile ("mtc0 %0, $3" :: "r"(dma_size));
+    }
+    else
+    {
+        asm volatile ("mtc0 %0, $2" :: "r"(dma_size));
+    }
 
     /* Wait for DMA to finish copying data */
     do
@@ -86,7 +94,7 @@ int main()
                 rb_start += 4;
                 break;
             case HFX_CMD_DMA:
-                hfx_cmd_dma(rb_start);
+                hfx_cmd_dma(cmd>>8, rb_start);
                 rb_start += 16;
                 break;
             case HFX_CMD_SET_DISPLAY:
