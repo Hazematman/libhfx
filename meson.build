@@ -41,9 +41,11 @@ cflags = [
 ucode_cflags = [
 '-I'+meson.source_root()+'/include',
 '-std=gnu99',
+'-Wall',
 '-march=vr4300',
 '-mtune=vr4300',
 '-Os',
+'-mno-branch-likely',
 '-Wall',
 '-mabi=eabi',
 '-mgp32',
@@ -52,6 +54,7 @@ ucode_cflags = [
 ]
 
 ucode_ldflags = [
+'-Wall',
 '-march=vr4300',
 '-mtune=vr4300',
 '-mabi=eabi',
@@ -60,6 +63,7 @@ ucode_ldflags = [
 '-nostdlib',
 '-flto',
 '-Os',
+'-mno-branch-likely',
 ]
 
 #####################################

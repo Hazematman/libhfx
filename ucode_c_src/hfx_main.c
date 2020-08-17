@@ -5,8 +5,8 @@
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
 
 extern uint32_t volatile hfx_registers[HFX_REGISTER_SPACE_SIZE];
+volatile uint32_t hfx_rb_buffer[256] __attribute__((aligned(8)));
 static uint32_t hfx_rb_end;
-uint32_t volatile hfx_rb_buffer[256] __attribute__((aligned(8)));
 
 void hfx_check_rb_ptr()
 {
@@ -74,13 +74,13 @@ int main()
             continue;
 
         uint32_t cmd = hfx_rb_buffer[rb_start>>2];
-        switch(cmd)
+        switch(cmd & 0xFF)
         {
             case HFX_CMD_NOP:
                 rb_start += 4;
                 break;
             case HFX_CMD_INT:
-                asm("break");
+                asm volatile ("break");
                 rb_start += 4;
                 break;
             case HFX_CMD_DMA:
