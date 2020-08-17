@@ -3,6 +3,8 @@
 
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
+// TODO fix masking here
+#define HFX_READ_RB(offset) hfx_rb_buffer[((rb_start+((offset)<<2))&0x3FFF)>>2]
 
 extern uint32_t volatile hfx_registers[HFX_REGISTER_SPACE_SIZE];
 volatile uint32_t hfx_rb_buffer[256] __attribute__((aligned(8)));
@@ -38,9 +40,9 @@ void hfx_check_rb_ptr()
 
 void hfx_cmd_dma(uint32_t rb_start)
 {
-    uint32_t dma_dmem_addr = hfx_rb_buffer[(rb_start>>2)+1];
-    uint32_t dma_mem_addr = hfx_rb_buffer[(rb_start>>2)+2];
-    uint32_t dma_size = hfx_rb_buffer[(rb_start>>2)+3];
+    uint32_t dma_dmem_addr = HFX_READ_RB(1);
+    uint32_t dma_mem_addr = HFX_READ_RB(2);
+    uint32_t dma_size = HFX_READ_RB(3);
     uint32_t status;
 
     /* Setup DMA transfer registers */
