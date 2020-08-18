@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define HFX_SET_XBUX_DMEM_DMA 0x0002
+#define HFX_SET_XBUS_DMEM_DMA 0x0002
 
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
@@ -76,10 +76,12 @@ void hfx_cmd_dma(bool write, uint32_t rb_start)
 
 void hfx_init_rdp()
 {
+    /* Set RDP to load using XBUS DMA (DMA from DMEM) */
+    /* Set RDP start and end pointer to statically allocated buffer */
     asm volatile("mtc0 %0, $11\n"
                  "mtc0 %1, $8\n"
                  "mtc0 %2, $9"
-                 :: "r"(HFX_SET_XBUX_DMEM_DMA),
+                 :: "r"(HFX_SET_XBUS_DMEM_DMA),
                     "r"(hfx_rdb_buffer),
                     "r"(hfx_rdb_buffer));
 }
@@ -88,7 +90,7 @@ int main()
 {
     /* Set REG RB_END to zero */
     hfx_rb_end = 0;
-    
+
     hfx_init_rdp();
 
     for(;;)
