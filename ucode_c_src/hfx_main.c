@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define HFX_SET_XBUX_DMEM_DMA 0x0002
+
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
 // TODO fix masking here
@@ -9,6 +11,7 @@
 
 extern uint32_t volatile hfx_registers[HFX_REGISTER_SPACE_SIZE];
 volatile uint32_t hfx_rb_buffer[256] __attribute__((aligned(8)));
+volatile uint32_t hfx_rdb_buffer[64] __attribute__((aligned(8)));
 static uint32_t hfx_rb_end;
 
 void hfx_check_rb_ptr()
@@ -71,10 +74,22 @@ void hfx_cmd_dma(bool write, uint32_t rb_start)
     return;
 }
 
+void hfx_init_rdp()
+{
+    asm volatile("mtc0 %0, $11\n"
+                 "mtc0 %1, $8\n"
+                 "mtc0 %2, $9"
+                 :: "r"(HFX_SET_XBUX_DMEM_DMA),
+                    "r"(hfx_rdb_buffer),
+                    "r"(hfx_rdb_buffer));
+}
+
 int main()
 {
     /* Set REG RB_END to zero */
     hfx_rb_end = 0;
+    
+    hfx_init_rdp();
 
     for(;;)
     { 
