@@ -113,10 +113,8 @@ void hfx_rdp_queue(uint32_t cmd)
 
 void hfx_rdp_submit()
 {
-    asm volatile("mtc0 %0, $8\n"
-                 "mtc0 %1, $9"
-                 :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_start)),
-                    "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
+    asm volatile("mtc0 %0, $9"
+                 :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
 
     hfx_rdp_start = hfx_rdp_end;
 }
