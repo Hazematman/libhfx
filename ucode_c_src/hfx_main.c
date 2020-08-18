@@ -81,6 +81,7 @@ void hfx_rdp_init()
 {
     hfx_rdp_start = 0;
     hfx_rdp_end = 0;
+
     /* Set RDP to load using XBUS DMA (DMA from DMEM) */
     /* Set RDP start and end pointer to statically allocated buffer */
     asm volatile("mtc0 %0, $11\n"
@@ -107,7 +108,7 @@ void hfx_rdp_reserve(uint32_t num_bytes)
 
 void hfx_rdp_queue(uint32_t cmd)
 {
-    hfx_rdb_buffer[hfx_rdp_end] = cmd;
+    hfx_rdb_buffer[hfx_rdp_end>>2] = cmd;
     hfx_rdp_end += sizeof(uint32_t);
 }
 
@@ -123,9 +124,19 @@ void hfx_cmd_set_display(uint32_t rb_start)
 {
     uint32_t disp_addr = HFX_READ_RB(1);
 
-    hfx_rdp_reserve(sizeof(uint32_t)*2);
+    hfx_rdp_reserve(sizeof(uint32_t)*12);
     hfx_rdp_queue(0xFF10013F);
     hfx_rdp_queue(disp_addr);
+    hfx_rdp_queue(0xED000000);
+    hfx_rdp_queue(0x005003C0);
+    hfx_rdp_queue(0xEFB000FF);
+    hfx_rdp_queue(0x00004000);
+    hfx_rdp_queue(0xF7000000);
+    hfx_rdp_queue(0xFF00FF00);
+    hfx_rdp_queue(0xF6190190);
+    hfx_rdp_queue(0x00000000);
+    hfx_rdp_queue(0xE9000000);
+    hfx_rdp_queue(0x00000000);
     hfx_rdp_submit();
 }
 
