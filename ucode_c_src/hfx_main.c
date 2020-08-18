@@ -3,16 +3,19 @@
 #include <stdbool.h>
 
 #define HFX_SET_XBUS_DMEM_DMA 0x0002
+#define HFX_RDP_BUFFER_SIZE 64
 
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
 // TODO fix masking here
 #define HFX_READ_RB(offset) hfx_rb_buffer[((rb_start+((offset)<<2))&0x3FFF)>>2]
+#define OFFSET_OF(addr, offset) (((uint8_t*)(addr))+(offset))
 
 extern uint32_t volatile hfx_registers[HFX_REGISTER_SPACE_SIZE];
 volatile uint32_t hfx_rb_buffer[256] __attribute__((aligned(8)));
-volatile uint32_t hfx_rdb_buffer[64] __attribute__((aligned(8)));
+volatile uint32_t hfx_rdb_buffer[HFX_RDP_BUFFER_SIZE] __attribute__((aligned(8)));
 static uint32_t hfx_rb_end;
+static uint32_t hfx_rdp_start, hfx_rdp_end;
 
 void hfx_check_rb_ptr()
 {
@@ -74,8 +77,10 @@ void hfx_cmd_dma(bool write, uint32_t rb_start)
     return;
 }
 
-void hfx_init_rdp()
+void hfx_rdp_init()
 {
+    hfx_rdp_start = 0;
+    hfx_rdp_end = 0;
     /* Set RDP to load using XBUS DMA (DMA from DMEM) */
     /* Set RDP start and end pointer to statically allocated buffer */
     asm volatile("mtc0 %0, $11\n"
@@ -86,12 +91,52 @@ void hfx_init_rdp()
                     "r"(hfx_rdb_buffer));
 }
 
+uint32_t hfx_rdp_size()
+{
+    return hfx_rdp_end - hfx_rdp_start;
+}
+
+void hfx_rdp_reserve(uint32_t num_bytes)
+{
+    uint32_t rdp_size = hfx_rdp_size();
+    if((rdp_size + num_bytes) >= (HFX_RDP_BUFFER_SIZE*sizeof(uint32_t)))
+    {
+        /* TODO wrap buffer */
+    }
+}
+
+void hfx_rdp_queue(uint32_t cmd)
+{
+    hfx_rdb_buffer[hfx_rdp_end] = cmd;
+    hfx_rdp_end += sizeof(uint32_t);
+}
+
+void hfx_rdp_submit()
+{
+    asm volatile("mtc0 %0, $8\n"
+                 "mtc0 %1, $9"
+                 :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_start)),
+                    "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
+
+    hfx_rdp_start = hfx_rdp_end;
+}
+
+void hfx_cmd_set_display(uint32_t rb_start)
+{
+    uint32_t disp_addr = HFX_READ_RB(1);
+
+    hfx_rdp_reserve(sizeof(uint32_t)*2);
+    hfx_rdp_queue(0xFF10013F);
+    hfx_rdp_queue(disp_addr);
+    hfx_rdp_submit();
+}
+
 int main()
 {
     /* Set REG RB_END to zero */
     hfx_rb_end = 0;
 
-    hfx_init_rdp();
+    hfx_rdp_init();
 
     for(;;)
     { 
@@ -115,6 +160,7 @@ int main()
                 rb_start += 16;
                 break;
             case HFX_CMD_SET_DISPLAY:
+                hfx_cmd_set_display(rb_start);
                 rb_start += 8;
                 break;
         }
