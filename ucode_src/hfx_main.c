@@ -124,24 +124,27 @@ void hfx_cmd_set_display(uint32_t rb_start)
 {
     uint32_t disp_addr = HFX_READ_RB(1);
 
-    hfx_rdp_reserve(sizeof(uint32_t)*12);
+    hfx_rdp_reserve(sizeof(uint32_t)*2);
     hfx_rdp_queue(0xFF10013F);
     hfx_rdp_queue(disp_addr);
-    hfx_rdp_queue(0xED000000);
-    hfx_rdp_queue(0x005003C0);
-    hfx_rdp_queue(0xEFB000FF);
-    hfx_rdp_queue(0x00004000);
-    hfx_rdp_queue(0xF7000000);
-    hfx_rdp_queue(0xFF00FF00);
-    hfx_rdp_queue(0xF6190190);
-    hfx_rdp_queue(0x00000000);
-    hfx_rdp_queue(0xE9000000);
-    hfx_rdp_queue(0x00000000);
+    hfx_rdp_submit();
+}
+
+void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
+{
+    hfx_rdp_reserve(sizeof(uint32_t)*num_cmds);
+
+    for(int i=0; i < num_cmds; i++)
+    {
+        hfx_rdp_queue(HFX_READ_RB(2+i));
+    }
+
     hfx_rdp_submit();
 }
 
 int main()
 {
+    uint32_t num_rdp_cmds = 0;
     /* Set REG RB_END to zero */
     hfx_rb_end = 0;
 
@@ -171,6 +174,10 @@ int main()
             case HFX_CMD_SET_DISPLAY:
                 hfx_cmd_set_display(rb_start);
                 rb_start += 8;
+            case HFX_CMD_SEND_RDP:
+                num_rdp_cmds = HFX_READ_RB(1);
+                hfx_cmd_set_rdp(rb_start, num_rdp_cmds);
+                rb_start += 8 + num_rdp_cmds;
                 break;
         }
 

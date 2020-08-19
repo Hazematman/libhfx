@@ -11,6 +11,7 @@ void hfx_cmd_int(hfx_state *state);
 void hfx_cmd_dma_read_to_rsp(
     hfx_state *state, uint32_t dmem_addr, void *addr, uint32_t size);
 void hfx_cmd_register_display(hfx_state *state);
+void hfx_cmd_rdp(hfx_state *state, uint32_t num_cmds, uint32_t *cmds);
 
 
 #endif

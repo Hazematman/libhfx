@@ -16,7 +16,7 @@ SECTIONS
         .data 
         {
             "${BUILD_DIR}/crt.o"(.data)
-            *(.data* .sdata*)
+            *(.*data*)
         }
     } > ROM
 
