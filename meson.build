@@ -19,7 +19,7 @@ src_files = [
     'src/hfx_display.c',
 ]
 
-ucode_src_dir = './ucode_c_src/'
+ucode_src_dir = './ucode_src/'
 ucode_files = [
     'crt.S',
     'hfx_ucode.c',
