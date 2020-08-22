@@ -6,16 +6,14 @@
 #include <hfx_rb.h>
 #include <hfx_cmds.h>
 #include <hfx_int.h>
+#include <hfx_types.h>
 #include <libdragon.h>
 
 static resolution_t res = RESOLUTION_320x240;
 static bitdepth_t bit = DEPTH_16_BPP;
 
-static uint32_t array[4] __attribute__((aligned(8))) = {1,2,3,4};
-static uint32_t array2[4] __attribute__((aligned(8))) = {5,6,7,8};
-static uint32_t buffer[1024] __attribute__((aligned(8)));
-
 static int done = 1;
+static hfx_state *state;
 
 static void hfx_int()
 {
@@ -38,7 +36,7 @@ static uint32_t cmds[] =
 
 int main(void)
 {
-     /* enable interrupts (on the CPU) */
+    /* enable interrupts (on the CPU) */
     init_interrupts();
 
     /* Initialize peripherals */
@@ -47,7 +45,7 @@ int main(void)
     register_DP_handler(hfx_int);
     set_DP_interrupt(1);
 
-    hfx_state *state = hfx_init();
+    state = hfx_init();
     hfx_register_rsp_int(state, hfx_int);
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint32_t), cmds);
     hfx_rb_submit(state);
@@ -61,5 +59,11 @@ int main(void)
 
             hfx_swap_buffers(state);
         }
+
+#if 0
+        *(uint32_t *)(0xA0000000 | 0x18000004) = 0x2222;
+        *(uint32_t *)(0xA0000000 | 0x18000004) = hfx_read_reg(HFX_VADDR_REG_RB_START);
+        *(uint32_t *)(0xA0000000 | 0x18000004) = hfx_read_reg(HFX_VADDR_REG_RB_END);
+#endif
     }
 }

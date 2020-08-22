@@ -133,9 +133,9 @@ void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
 {
     hfx_rdp_reserve(sizeof(uint32_t)*num_cmds);
 
-    for(int i=0; i < num_cmds; i++)
+    for(uint32_t i=0; i < num_cmds; i++)
     {
-        hfx_rdp_queue(HFX_READ_RB(2+i));
+        hfx_rdp_queue(HFX_READ_RB(1+i));
     }
 
     hfx_rdp_submit();
@@ -147,6 +147,9 @@ int main()
     /* Set REG RB_END to zero */
     hfx_rb_end = 0;
 
+    /* Set status reg to zero */
+    HFX_WRITE_REG(HFX_REG_STATUS, 0);
+
     hfx_rdp_init();
 
     for(;;)
@@ -156,14 +159,10 @@ int main()
         if(rb_start == hfx_rb_end)
             continue;
 
-        uint32_t cmd = hfx_rb_buffer[rb_start>>2];
+        uint32_t cmd = HFX_READ_RB(0);
         switch(cmd & 0xFF)
         {
             case HFX_CMD_NOP:
-                rb_start += 4;
-                break;
-            case HFX_CMD_INT:
-                asm volatile ("break");
                 rb_start += 4;
                 break;
             case HFX_CMD_DMA:
@@ -173,10 +172,18 @@ int main()
             case HFX_CMD_SET_DISPLAY:
                 hfx_cmd_set_display(rb_start);
                 rb_start += 8;
+                break;
             case HFX_CMD_SEND_RDP:
-                num_rdp_cmds = HFX_READ_RB(1);
+                num_rdp_cmds = cmd >> 8;
                 hfx_cmd_set_rdp(rb_start, num_rdp_cmds);
-                rb_start += 8 + num_rdp_cmds;
+                rb_start += 4 + num_rdp_cmds*4;
+                break;
+            default:
+                HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)|HFX_STATUS_INVALID_OP);
+                HFX_WRITE_REG(HFX_REG_BAD_OP, cmd);
+            case HFX_CMD_INT:
+                asm volatile ("break");
+                rb_start += 4;
                 break;
         }
 

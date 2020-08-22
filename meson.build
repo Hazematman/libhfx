@@ -46,11 +46,13 @@ ucode_cflags = [
 '-mtune=vr4300',
 '-Os',
 '-mno-branch-likely',
+'-mno-llsc',
 '-Wall',
 '-mabi=eabi',
 '-mgp32',
 '-flto',
 '-MMD',
+'-EB',
 ]
 
 ucode_ldflags = [
@@ -61,9 +63,11 @@ ucode_ldflags = [
 '-mgp32',
 '-ffreestanding',
 '-nostdlib',
-'-flto',
 '-Os',
 '-mno-branch-likely',
+'-mno-llsc',
+'-flto',
+'-EB',
 ]
 
 #####################################

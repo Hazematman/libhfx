@@ -17,9 +17,9 @@ void hfx_cmd_int(hfx_state *state)
 
 void hfx_cmd_rdp(hfx_state *state, uint32_t num_cmds, uint32_t *cmds)
 {
+    uint32_t cmd = ((num_cmds << 8) | HFX_CMD_SEND_RDP);
     hfx_rb_reserve(state, 1+num_cmds);
-    hfx_rb_queue(state, HFX_CMD_SEND_RDP);
-    hfx_rb_queue(state, num_cmds);
+    hfx_rb_queue(state, cmd);
     for(int i=0; i < num_cmds; i++)
     {
         hfx_rb_queue(state, cmds[i]);
