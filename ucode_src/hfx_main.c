@@ -11,6 +11,11 @@
 #define HFX_READ_RB(offset) hfx_rb_buffer[((rb_start+((offset)<<2))&0x3FFF)>>2]
 #define OFFSET_OF(addr, offset) (((uint8_t*)(addr))+(offset))
 
+#define hfx_rdp_queue(cmd) { \
+    hfx_rdb_buffer[hfx_rdp_end>>2] = cmd; \
+    hfx_rdp_end += sizeof(uint32_t); \
+    }
+
 extern uint32_t volatile hfx_registers[HFX_REGISTER_SPACE_SIZE];
 volatile uint32_t hfx_rb_buffer[256] __attribute__((aligned(8)));
 volatile uint32_t hfx_rdb_buffer[HFX_RDP_BUFFER_SIZE] __attribute__((aligned(8)));
@@ -104,12 +109,6 @@ void hfx_rdp_reserve(uint32_t num_bytes)
     {
         /* TODO wrap buffer */
     }
-}
-
-void hfx_rdp_queue(uint32_t cmd)
-{
-    hfx_rdb_buffer[hfx_rdp_end>>2] = cmd;
-    hfx_rdp_end += sizeof(uint32_t);
 }
 
 void hfx_rdp_submit()
