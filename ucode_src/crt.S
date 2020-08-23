@@ -5,7 +5,7 @@
 _start:
     /* Set stack to end of RAM */
     move $gp, $zero
-    addi $sp, $0, (0x1000-4)
+    addi $sp, $0, 0x1000
     jal main
         nop
 
