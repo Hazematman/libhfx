@@ -1,12 +1,19 @@
 project('libhfx')
 fs = import('fs')
-mips_compiler = find_program('mips64-elf-gcc')
-mips_linker = find_program('mips64-elf-ld')
-mips_ar = find_program('mips64-elf-ar')
-mips_objcopy = find_program('mips64-elf-objcopy')
-n64tool = find_program('n64tool')
-chksum64 = find_program('chksum64')
-bash = find_program('bash')
+
+# Need to get exe extension to properly run on windows
+exe_extension = ''
+if build_machine.system().contains('mingw')
+    exe_extension = '.exe'
+endif
+
+mips_compiler = find_program('mips64-elf-gcc' + exe_extension)
+mips_linker = find_program('mips64-elf-ld' + exe_extension)
+mips_ar = find_program('mips64-elf-ar' + exe_extension)
+mips_objcopy = find_program('mips64-elf-objcopy' + exe_extension)
+n64tool = find_program('n64tool' + exe_extension)
+chksum64 = find_program('chksum64' + exe_extension)
+bash = find_program('bash' + exe_extension)
 
 #####################################
 # Add new files here
@@ -26,6 +33,7 @@ ucode_files = [
     'hfx_ucode.c',
 ]
 ucode_loader = 'libhfx_src/src/linker.S'
+ucode_linker_script = 'ucode.ld'
 
 # Change compiler flags here
 cflags = [
@@ -86,26 +94,23 @@ endforeach
 
 ucode_define_string = '-DTEXT_SECTION_BIN="@0@" -DDATA_SECTION_BIN="@1@"'
 
-# Need to replace $BUILD_DIR in linker script so project can build from any directory
-ucode_linker_script = custom_target('ucode_linker_script',
-    output : 'ucode.ld',
-    input : 'ucode_template.ld',
-    command : [bash, '-c', 'export BUILD_DIR=ucode.elf.p; envsubst < @INPUT@'], # hardcode ucode_elf@cus for now
-    capture : true )
-
-ucode_obj_generator = generator(mips_compiler,
-    output  : '@BASENAME@.o',
-    arguments : ucode_cflags +['-c', '@INPUT@', '-o', '@OUTPUT@'],
-    depfile : '@BASENAME@.d')
-
 # Build all ucode object files
-ucode_obj_files = ucode_obj_generator.process(ucode_src_files)
+ucode_obj_files = []
+foreach source : ucode_src_files
+    obj = custom_target(fs.name(source), 
+                        output : '@BASENAME@.o',
+                        input : source,
+                        command : [mips_compiler] + ucode_cflags + ['-c', '@INPUT@', '-o', '@OUTPUT@'],
+                        depfile : '@BASENAME@.d')
+    ucode_obj_files += [obj]
+endforeach
 
 # Build ucode into elf file
 ucode_elf_file = custom_target('ucode_elf',
    output : 'ucode.elf',
    input : ucode_obj_files,
-   command : [mips_compiler] + ucode_ldflags + ['@INPUT@', '-o', '@OUTPUT@', '-T', ucode_linker_script])
+   depend_files : ucode_linker_script,
+   command : [mips_compiler] + ucode_ldflags + ['@INPUT@', '-o', '@OUTPUT@', '-T', '../'+ucode_linker_script])
    
 # convert ucode elf into bin files
 ucode_bin = custom_target('ucode_bin',

@@ -1,16 +1,23 @@
 project('tests')
 fs = import('fs')
-mips_compiler = find_program('mips64-elf-gcc')
-mips_linker = find_program('mips64-elf-ld')
-mips_objcopy = find_program('mips64-elf-objcopy')
-n64tool = find_program('n64tool')
-chksum64 = find_program('chksum64')
+
+# Need to get exe extension to properly run on windows
+exe_extension = ''
+if build_machine.system().contains('mingw')
+    exe_extension = '.exe'
+endif
+
+mips_compiler = find_program('mips64-elf-gcc' + exe_extension)
+mips_linker = find_program('mips64-elf-ld' + exe_extension)
+mips_objcopy = find_program('mips64-elf-objcopy' + exe_extension)
+n64tool = find_program('n64tool' + exe_extension)
+chksum64 = find_program('chksum64' + exe_extension)
 
 prj_root = meson.source_root() + '/..'
 
 #####################################
 # Add new tests & files here
-n64_tool_path = '/home/lucas.fryzek/.local/n64_toolchain/' # TODO replace this with not hardcoded value
+n64_tool_path = run_command('sh' + exe_extension, '-c', 'echo $N64_INST').stdout().strip()
 
 test_dict = {
     'basic_rb_test' : [
@@ -34,7 +41,7 @@ cflags = [
 ]
 
 ldflags = [
-'-L'+n64_tool_path+'mips64-elf/lib',
+'-L'+n64_tool_path+'/mips64-elf/lib',
 '-L'+prj_root+'/build',
 '-L'+meson.source_root()+'/build',
 '--start-group',
