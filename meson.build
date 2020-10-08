@@ -1,4 +1,4 @@
-project('libhfx')
+project('libhfx', 'c')
 fs = import('fs')
 
 # Need to get exe extension to properly run on windows
@@ -142,3 +142,20 @@ libhfx = custom_target('libhfx',
     input : [object_files] + [ucode_link],
     command : [mips_ar, 'rcs', '@OUTPUT@', '@INPUT@'],
     build_by_default:true)
+
+#############################################################
+
+opengl_src = [
+    './libhfx_gl/src/hfx.c',
+    './gl_test/cube/main.c'
+]
+
+opengl_c_args = [
+    '-I'+meson.source_root()+'/libhfx_gl/include',
+    '-I'+meson.source_root()+'/include'
+]
+
+# Build OpenGL example platform
+executable('cube', opengl_src,
+            c_args : opengl_c_args,
+            link_args : ['-lSDL2', '-lGL', '-lGLEW'])
