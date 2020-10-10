@@ -142,7 +142,7 @@ int main()
     hfxEnable(state, HFX_VERTEX_ARRAY);
     hfxEnable(state, HFX_COLOR_ARRAY);
 
-    hfxClearColor(state, 0.0f, 0.0f, 0.0f, 1.0f);
+    hfxClearColor(state, 0.3f, 0.1f, 0.9f, 1.0f);
 
     hfxVertexPointer(state, 3, HFX_FLOAT, 0, cube_verts);
     hfxColorPointer(state, 4, HFX_UNSIGNED_BYTE, 0, cube_colors);
