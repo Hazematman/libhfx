@@ -27,6 +27,6 @@ void hfx_clear(hfx_state *state, uint32_t bits)
         cmds[1] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[2] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
 
-        hfx_cmd_rdp(state, sizeof(cmds), cmds);
+        hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     }   
 }
