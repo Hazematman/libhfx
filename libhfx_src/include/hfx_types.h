@@ -12,6 +12,20 @@ typedef struct hfx_state {
     uint32_t rb_size;
     uint32_t rb_size_mask;
     display_context_t display;
+
+    struct
+    {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+        uint8_t a;
+    } clear_color;
+
+    struct
+    {
+        uint32_t width;
+        uint32_t height;
+    } display_dim;
 } hfx_state __attribute__((aligned(8)));
 
 #endif

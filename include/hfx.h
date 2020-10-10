@@ -3,7 +3,8 @@
 #include <hfx_cmds.h>
 #include <stdint.h>
 
-#define HFX_COLOR_BUFFER_BIT			0x00004000
+#define HFX_COLOR_BUFFER_BIT	0x00004000
+#define HFX_DEPTH_BUFFER_BIT	0x00000100
 
 #define HFX_BYTE			    0x1400
 #define HFX_UNSIGNED_BYTE		0x1401
@@ -19,8 +20,6 @@
 #define HFX_COLOR_ARRAY         0x8076
 
 #define HFX_DEPTH_TEST			0x0B71
-
-#define HFX_DEPTH_BUFFER_BIT	0x00000100
 
 typedef struct hfx_state hfx_state;
 typedef int32_t HFXfixed;
