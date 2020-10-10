@@ -87,18 +87,18 @@ void hfx_rotate_f(hfx_state *state, float angle, float x, float y, float z)
     hfx_normalize(state, axis, normalized_axis);
 
     result[0] = c + (1-c)*normalized_axis[0]*normalized_axis[0];
-    result[1] = (1-c)*normalized_axis[0]*normalized_axis[1] + s*normalized_axis[3];
-    result[2] = (1-c)*normalized_axis[0]*normalized_axis[3] - s*normalized_axis[2];
+    result[1] = (1-c)*normalized_axis[0]*normalized_axis[1] + s*normalized_axis[2];
+    result[2] = (1-c)*normalized_axis[0]*normalized_axis[2] - s*normalized_axis[1];
     result[3] = 0.0f;
 
-    result[4] = (1-c)*normalized_axis[1]*normalized_axis[0] - s*normalized_axis[3];
+    result[4] = (1-c)*normalized_axis[1]*normalized_axis[0] - s*normalized_axis[2];
     result[5] = c + (1-c)*normalized_axis[1]*normalized_axis[1];
-    result[6] = (1-c)*normalized_axis[1]*normalized_axis[3] + s*normalized_axis[0];
+    result[6] = (1-c)*normalized_axis[1]*normalized_axis[2] + s*normalized_axis[0];
     result[7] = 0.0f;
 
-    result[8] = (1-c)*normalized_axis[3]*normalized_axis[3] + s*normalized_axis[2];
-    result[9] = (1-c)*normalized_axis[3]*normalized_axis[2] - s*normalized_axis[0];
-    result[10] = c + (1-c)*normalized_axis[3]*normalized_axis[3];
+    result[8] = (1-c)*normalized_axis[2]*normalized_axis[0] + s*normalized_axis[1];
+    result[9] = (1-c)*normalized_axis[2]*normalized_axis[1] - s*normalized_axis[0];
+    result[10] = c + (1-c)*normalized_axis[2]*normalized_axis[2];
     result[11] = 0.0f;
 
     result[12] = 0.0f;
