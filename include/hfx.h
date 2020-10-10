@@ -48,4 +48,9 @@ void hfxRotatef(hfx_state *state, float angle, float x, float y, float z);
 void hfxScalef(hfx_state *state, float x, float y, float z);
 void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count);
 
+void hfx_load_identity(hfx_state *state);
+void hfx_translate_f(hfx_state *state, float x, float y, float z);
+void hfx_rotate_f(hfx_state *state, float angle, float x, float y, float z);
+void hfx_scale_f(hfx_state *state, float sx, float sy, float sz);
+
 #endif

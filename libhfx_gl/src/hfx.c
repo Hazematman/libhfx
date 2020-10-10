@@ -93,25 +93,26 @@ void hfxColorPointer(hfx_state *state, int32_t size, uint32_t type, uint32_t str
 
 void hfxLoadIdentity(hfx_state *state)
 {
-    glLoadIdentity();
+    hfx_load_identity(state);
 }
 
 void hfxTranslatef(hfx_state *state, float x, float y, float z)
 {
-    glTranslatef(x, y, z);
+    hfx_translate_f(state, x, y, z);
 }
 
 void hfxRotatef(hfx_state *state, float angle, float x, float y, float z)
 {
-    glRotatef(angle, x, y, z);
+    hfx_rotate_f(state, angle, x, y, z);
 }
 
 void hfxScalef(hfx_state *state, float x, float y, float z)
 {
-    glScalef(x, y, z);
+    hfx_scale_f(state, x, y, z);
 }
 
 void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count)
 {
+    glLoadMatrixf(state->model_matrix);
     glDrawArrays(mode, first, count);
 }

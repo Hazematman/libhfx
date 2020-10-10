@@ -147,6 +147,7 @@ libhfx = custom_target('libhfx',
 
 opengl_src = [
     './libhfx_gl/src/hfx.c',
+    './libhfx_src/src/hfx_matrix.c',
     './gl_test/cube/main.c'
 ]
 
@@ -158,4 +159,4 @@ opengl_c_args = [
 # Build OpenGL example platform
 executable('cube', opengl_src,
             c_args : opengl_c_args,
-            link_args : ['-lSDL2', '-lGL', '-lGLEW'])
+            link_args : ['-lSDL2', '-lGL', '-lGLEW', '-lm'])
