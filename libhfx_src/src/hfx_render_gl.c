@@ -24,6 +24,7 @@ void hfx_clear(hfx_state *state, uint32_t bits)
     {
         uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g, state->clear_color.b, state->clear_color.a);
         uint64_t cmds[3];
+        cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM|HFX_RDP_CMD_SET_MODE_FILL|HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER|HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER|HFX_RDP_CMD_SET_MODE_FORCE_BLEND);
         cmds[1] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[2] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
 
