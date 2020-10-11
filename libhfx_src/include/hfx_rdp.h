@@ -4,7 +4,7 @@
 
 #define HFX_RDP_CMD_SHIFT           56ull
 #define HFX_RDP_CMD_MASK            (0x3f << HFX_RDP_CMD_SHIFT)
-#define HFX_RDP_CMD_RESERVE         0xe0ull
+#define HFX_RDP_CMD_RESERVE         0xc0ull
 #define HFX_RDP_CMD_SET_FILL_COLOR  0x37ull
 #define HFX_RDP_CMD_FILL_RECT       0x36ull
 #define     HFX_RDP_CMD_FILL_RECT_ARG_MASK 0xfffull 
