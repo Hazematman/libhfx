@@ -22,6 +22,8 @@ volatile uint32_t hfx_rdb_buffer[HFX_RDP_BUFFER_SIZE] __attribute__((aligned(8))
 static uint32_t hfx_rb_end;
 static uint32_t hfx_rdp_start, hfx_rdp_end;
 
+void hfx_rdp_submit();
+
 void hfx_check_rb_ptr()
 {
     uint32_t status;
@@ -107,7 +109,24 @@ void hfx_rdp_reserve(uint32_t num_bytes)
     uint32_t rdp_size = hfx_rdp_size();
     if((rdp_size + num_bytes) >= (HFX_RDP_BUFFER_SIZE*sizeof(uint32_t)))
     {
-        /* TODO wrap buffer */
+        /* To deal with buffer wrapping we take the following approach: */
+        /* Submit any remaining queued commands, then wait for the RDP */
+        /* to complete executing by waiting until the RDP current pointer */
+        /* equals the end of the buffer. Once we know that the RDP has executed */
+        /* all remaining commands in the buffer we can then reset the buffer by */
+        /* setting the begin and end pointer to the same value */
+        hfx_rdp_submit();
+
+        uint32_t rdp_current;
+        uint32_t offset_end = (uint32_t)OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end);
+
+        do 
+        {
+            asm volatile("mfc0 %0, $10"
+                         : "=r"(rdp_current));
+        } while(rdp_current != offset_end);
+
+        hfx_rdp_init();
     }
 }
 
@@ -115,8 +134,6 @@ void hfx_rdp_submit()
 {
     asm volatile("mtc0 %0, $9"
                  :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
-
-    hfx_rdp_start = hfx_rdp_end;
 }
 
 void hfx_cmd_set_display(uint32_t rb_start)
