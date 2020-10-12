@@ -56,7 +56,7 @@ int main(void)
     // TODO this rdp command is only here to set the default clip
     // Should really be part of the hfx library
     hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
-    hfx_clear_color_f(state, 255, 0, 0, 255);
+    hfx_clear_color_f(state, 1.0f, 0.0f, 0.0f, 1.0f);
     hfx_clear(state, HFX_COLOR_BUFFER_BIT);
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_rb_submit(state);
