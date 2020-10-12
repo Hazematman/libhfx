@@ -29,6 +29,9 @@ test_dict = {
     'rdp_buffer_wrap' : [
         'main.c'
     ],
+    'hfx_clear' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here

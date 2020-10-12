@@ -47,6 +47,8 @@ void hfxRotatef(hfx_state *state, float angle, float x, float y, float z);
 void hfxScalef(hfx_state *state, float x, float y, float z);
 void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count);
 
+void hfx_clear_color_f(hfx_state *state, float r, float g, float b, float a);
+void hfx_clear(hfx_state *state, uint32_t bits);
 void hfx_load_identity(hfx_state *state);
 void hfx_translate_f(hfx_state *state, float x, float y, float z);
 void hfx_rotate_f(hfx_state *state, float angle, float x, float y, float z);
