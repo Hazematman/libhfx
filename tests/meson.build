@@ -43,9 +43,12 @@ cflags = [
 '-MMD',
 ]
 
+hfx_lib_path = prj_root+'/build'
+hfx_lib_name = hfx_lib_path + '/libhfx.a'
+
 ldflags = [
 '-L'+n64_tool_path+'/mips64-elf/lib',
-'-L'+prj_root+'/build',
+'-L'+hfx_lib_path,
 '-L'+meson.source_root()+'/build',
 '--start-group',
 '-lhfx',
@@ -78,7 +81,7 @@ foreach test, sources : test_dict
     elf_file = custom_target(test+'_elf',
         output : test+'.elf',
         input : [object_files],
-        depend_files : prj_root+'/build/libhfx.a',
+        depend_files : hfx_lib_name,
         command : [mips_linker, '-o', '@OUTPUT@', '@INPUT@'] + ldflags)
         
     bin_file = custom_target(test+'_bin',
