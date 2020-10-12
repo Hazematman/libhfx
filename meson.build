@@ -25,6 +25,7 @@ src_files = [
     'src/hfx_cmd.c',
     'src/hfx_display.c',
     'src/hfx_math.c',
+    'src/hfx_render.c',
     'src/hfx_render_gl.c',
 ]
 

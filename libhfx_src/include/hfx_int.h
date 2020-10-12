@@ -13,5 +13,7 @@ void hfx_cmd_dma_read_to_rsp(
 void hfx_cmd_register_display(hfx_state *state);
 void hfx_cmd_rdp(hfx_state *state, uint32_t num_cmds, uint64_t *cmds);
 
+void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3);
+
 
 #endif
