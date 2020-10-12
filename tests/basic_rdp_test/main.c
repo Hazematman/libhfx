@@ -20,18 +20,13 @@ static void hfx_int()
     done = 0;
 }
 
-static uint32_t cmds[] =
+static uint64_t cmds[] =
 {
-    0xED000000,
-    0x005003C0,
-    0xEFB000FF,
-    0x00004000,
-    0xF7000000,
-    0xFF00FF00,
-    0xF6190190,
-    0x00000000,
-    0xE9000000,
-    0x00000000,
+    0xED000000005003C0ULL,
+    0xEFB000FF00004000ULL,
+    0xF7000000FF00FF00ULL,
+    0xF619019000000000ULL,
+    0xE900000000000000ULL,
 };
 
 int main(void)
@@ -47,7 +42,7 @@ int main(void)
 
     state = hfx_init();
     hfx_register_rsp_int(state, hfx_int);
-    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint32_t), cmds);
+    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_rb_submit(state);
 
 
