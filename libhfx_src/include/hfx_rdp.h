@@ -71,18 +71,19 @@
 #define HFX_RDP_PKT_TRI_EDGE_COEFF_0(cmd, left_major, level, tile, yl, ym, yh) \
             (HFX_RDP_MAKE_CMD(cmd) | \
             ((uint64_t)(left_major) << HFX_RDP_CMD_TRI_LEFT_MAJOR_FLAG_SHIFT) | \
-            (((level)&HFX_RDP_CMD_TRI_LEVEL_MASK)<<HFX_RDP_CMD_TRI_LEVEL_SHIFT) | \
-            (((tile)&HFX_RDP_CMD_TRI_TILE_MASK)<<HFX_RPD_CMD_TRI_TILE_SHIFT) | \
-            (((yl)&HFX_RDP_CMD_TRI_YL_MASK)<<HFX_RDP_CMD_TRI_YL_SHIFT) | \
-            (((ym)&HFX_RDP_CMD_TRI_YM_MASK)<<HFX_RDP_CMD_TRI_YM_SHIFT) | \
-            (((yh)&HFX_RDP_CMD_TRI_YH_MASK)<<HFX_RDP_CMD_TRI_YH_SHIFT))
+            ((uint64_t)((level)&HFX_RDP_CMD_TRI_LEVEL_MASK)<<HFX_RDP_CMD_TRI_LEVEL_SHIFT) | \
+            ((uint64_t)((tile)&HFX_RDP_CMD_TRI_TILE_MASK)<<HFX_RPD_CMD_TRI_TILE_SHIFT) | \
+            ((uint64_t)((yl)&HFX_RDP_CMD_TRI_YL_MASK)<<HFX_RDP_CMD_TRI_YL_SHIFT) | \
+            ((uint64_t)((ym)&HFX_RDP_CMD_TRI_YM_MASK)<<HFX_RDP_CMD_TRI_YM_SHIFT) | \
+            ((uint64_t)((yh)&HFX_RDP_CMD_TRI_YH_MASK)<<HFX_RDP_CMD_TRI_YH_SHIFT))
 
-/* Before calling any of the triangle draw APIs ensure that a variable called buffer_index exists and is set to the offset you want to begin with */
+/* Before calling any of the triangle draw APIs ensure that a variable called buffer_index exists and is set to the offset you want to begin */
+/* writing the triangle draw commands to */
 #define HFX_RDP_PKT_TRI_NON_SHADE(buffer, left_major, level, tile, yl, ym, yh, xl, dxLdy, xh, dxHdy, xm, dxMdy) \
             (buffer)[buffer_index++] = HFX_RDP_PKT_TRI_EDGE_COEFF_0(HFX_RDP_CMD_TRI_NON_SHADE, left_major, level, tile, yl, ym, yh); \
-            (buffer)[buffer_index++] = ((uint64_t)(xl) << 32ull) | (dxLdy); \
-            (buffer)[buffer_index++] = ((uint64_t)(xh) << 32ull) | (dxHdy); \
-            (buffer)[buffer_index++] = ((uint64_t)(xm) << 32ull) | (dxMdy);
+            (buffer)[buffer_index++] = ((uint64_t)(xl) << 32ull) | ((uint64_t)(dxLdy)); \
+            (buffer)[buffer_index++] = ((uint64_t)(xh) << 32ull) | ((uint64_t)(dxHdy)); \
+            (buffer)[buffer_index++] = ((uint64_t)(xm) << 32ull) | ((uint64_t)(dxMdy));
 
 
 #endif

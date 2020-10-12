@@ -21,9 +21,11 @@ static hfx_state *state;
 static uint64_t cmds1[] =
 {
     0xED000000005003C0ULL,
+    /* These two commands set blend enable and */
+    /* the blend color. Should really be replaced with APIs */
+    /* that are used for triangle drawing */
     0xEF0000FF80000000ULL,
-    0xF9000000FF000000ULL,
-};
+    0xF9000000FF0000FFULL,
 
 /* This triggers a full sync to happen */
 /* eventually this should all be moved into the swap buffers command */

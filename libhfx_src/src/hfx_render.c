@@ -78,23 +78,23 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
     if( y1 > y2 ) { temp_x = x2, temp_y = y2; y2 = y1; y1 = temp_y; x2 = x1; x1 = temp_x; }
 
     /* calculate Y edge coefficients in 11.2 fixed format */
-    int yh = y1 * to_fixed_11_2;
-    int ym = y2 * to_fixed_11_2;
-    int yl = y3 * to_fixed_11_2;
+    uint32_t yh = y1 * to_fixed_11_2;
+    uint32_t ym = y2 * to_fixed_11_2;
+    uint32_t yl = y3 * to_fixed_11_2;
     
     /* calculate X edge coefficients in 16.16 fixed format */
-    int xh = x1 * to_fixed_16_16;
-    int xm = x1 * to_fixed_16_16;
-    int xl = x2 * to_fixed_16_16;
+    uint32_t xh = x1 * to_fixed_16_16;
+    uint32_t xm = x1 * to_fixed_16_16;
+    uint32_t xl = x2 * to_fixed_16_16;
     
     /* calculate inverse slopes in 16.16 fixed format */
-    int dxhdy = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) ) * to_fixed_16_16;
-    int dxmdy = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) ) * to_fixed_16_16;
-    int dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
+    uint32_t dxhdy = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) ) * to_fixed_16_16;
+    uint32_t dxmdy = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) ) * to_fixed_16_16;
+    uint32_t dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
     
     /* determine the winding of the triangle */
-    int winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
-    int flip = (winding > 0 ? 1 : 0 );
+    uint32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
+    uint32_t flip = (winding > 0 ? 1 : 0 ); 
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
                               flip,
