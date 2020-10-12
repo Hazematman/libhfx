@@ -9,26 +9,22 @@
 #include <hfx_types.h>
 #include <libdragon.h>
 
-/* With current implementation RDP buffer is 256 bytes long */
-/* which means only 32 64-bit commands can fit in the buffer */
-/* but during init the hfx library sends a single command to set the */
-/* Framebuffer address. So we will send 30 commands to start before sending */
-/* the commands that we actually want to do work */
-#define WRAP_LIMIT 30
-
-#define BUFFER_SIZE_BYTES 256
-
 static resolution_t res = RESOLUTION_320x240;
 static bitdepth_t bit = DEPTH_16_BPP;
 
 static int done = 1;
 static hfx_state *state;
 
+/* This command sets the clip area */
+/* Should not be required, internal library code should */
+/* Handle this on init */
 static uint64_t cmds1[] =
 {
     0xED000000005003C0ULL,
 };
 
+/* This triggers a full sync to happen */
+/* eventually this should all be moved into the swap buffers command */
 static uint64_t cmds[] =
 {
     0xE900000000000000ULL,
