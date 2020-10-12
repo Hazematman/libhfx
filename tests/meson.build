@@ -26,6 +26,9 @@ test_dict = {
     'basic_rdp_test' : [
         'main.c'
     ],
+    'rdp_buffer_wrap' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here
