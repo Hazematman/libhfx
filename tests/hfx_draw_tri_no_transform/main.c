@@ -24,8 +24,11 @@ static uint64_t cmds1[] =
     /* These two commands set blend enable and */
     /* the blend color. Should really be replaced with APIs */
     /* that are used for triangle drawing */
+#if 0
     0xEF0000FF80000000ULL,
     0xF9000000FF0000FFULL,
+#endif
+};
 
 /* This triggers a full sync to happen */
 /* eventually this should all be moved into the swap buffers command */
@@ -67,7 +70,8 @@ int main(void)
     // TODO this rdp command is only here to set the default clip
     // Should really be part of the hfx library
     hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
-    hfx_render_tri_f(state, v1, v2, v3);
+    hfx_color_f(state, 1.0f, 1.0f, 0.0f, 1.0f);
+    hfx_draw_tri_f(state, v1, v2, v3);
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_rb_submit(state);
 

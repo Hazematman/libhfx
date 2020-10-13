@@ -5,6 +5,13 @@
 
 #define HFX_RB_SIZE 1024
 
+typedef struct hfx_color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+} hfx_color;
+
 typedef struct hfx_state {
     uint32_t rb[HFX_RB_SIZE/4] __attribute__((aligned(8)));
     uint32_t rb_start;
@@ -13,13 +20,8 @@ typedef struct hfx_state {
     uint32_t rb_size_mask;
     display_context_t display;
 
-    struct
-    {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-        uint8_t a;
-    } clear_color;
+    hfx_color clear_color;
+    hfx_color vertex_color;
 
     struct
     {

@@ -41,7 +41,15 @@
 #define     HFX_RDP_CMD_SET_MODE_ALPHA_BAYER_MATRIX   (1ull << 36ull)
 #define     HFX_RDP_CMD_SET_MODE_ALPHA_NOISE          (2ull << 36ull)
 #define     HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER      (3ull << 36ull)
-/* TODO missing blend operations here */
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_MASK         3ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_1A_0_SHIFT   30ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_1A_1_SHIFT   28ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_1B_0_SHIFT   26ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_1B_1_SHIFT   24ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_2A_0_SHIFT   22ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_2A_1_SHIFT   20ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_2B_0_SHIFT   18ull
+#define     HFX_RDP_CMD_SET_MODE_BLEND_MODE_2B_1_SHIFT   16ull
 #define     HFX_RDP_CMD_SET_MODE_FORCE_BLEND        (1ull << 14ull)
 #define     HFX_RDP_CMD_SET_MODE_ALPHA_CVG_SELECT   (1ull << 13ull)
 #define     HFX_RDP_CMD_SET_MODE_CVG_TIMES_ALPHA    (1ull << 12ull)
@@ -58,6 +66,10 @@
 #define     HFX_RDP_CMD_TRI_YM_SHIFT                16ull
 #define     HFX_RDP_CMD_TRI_YH_MASK                 0x3fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
+#define HFX_RDP_CMD_SET_BLEND_COLOR                 0x39ull
+
+
+#define HFX_RDP_CMD_SET_BLEND_MODE(type, value) (((value)&HFX_RDP_CMD_SET_MODE_BLEND_MODE_MASK)<<HFX_RDP_CMD_SET_MODE_BLEND_MODE_##type##_SHIFT)
 
 
 #define HFX_RDP_MAKE_CMD(cmd) ((HFX_RDP_CMD_RESERVE|(cmd)) << HFX_RDP_CMD_SHIFT)
@@ -67,7 +79,8 @@
                                               (((yl)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_YL_SHIFT) | \
                                               (((xh)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XH_SHIFT) | \
                                               (((yh)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_YH_SHIFT))
-#define HFX_RDP_PKT_SET_MODE(modes) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_MODE) | HFX_RPD_CMD_SET_MODE_RESERVED | (modes))
+#define HFX_RDP_PKT_SET_BLEND_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_BLEND_COLOR)|((uint64_t)(color)))
+#define HFX_RDP_PKT_SET_MODE(modes) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_MODE) | HFX_RPD_CMD_SET_MODE_RESERVED | ((uint64_t)(modes)))
 #define HFX_RDP_PKT_TRI_EDGE_COEFF_0(cmd, left_major, level, tile, yl, ym, yh) \
             (HFX_RDP_MAKE_CMD(cmd) | \
             ((uint64_t)(left_major) << HFX_RDP_CMD_TRI_LEFT_MAJOR_FLAG_SHIFT) | \
