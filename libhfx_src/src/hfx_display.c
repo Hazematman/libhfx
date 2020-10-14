@@ -22,5 +22,6 @@ void hfx_cmd_register_display(hfx_state *state)
 
 void hfx_swap_buffers(hfx_state *state)
 {
-    display_show(state->display);    
+    display_show(state->display);
+    hfx_cmd_register_display(state); 
 }

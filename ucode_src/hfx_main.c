@@ -8,7 +8,7 @@
 #define HFX_READ_REG(reg) hfx_registers[(reg)>>2]
 #define HFX_WRITE_REG(reg, value) hfx_registers[(reg)>>2] = (value)
 // TODO fix masking here
-#define HFX_READ_RB(offset) hfx_rb_buffer[((rb_start+((offset)<<2))&0x3FFF)>>2]
+#define HFX_READ_RB(offset) hfx_rb_buffer[((rb_start+((offset)<<2))&0x3FF)>>2]
 #define OFFSET_OF(addr, offset) (((uint8_t*)(addr))+(offset))
 
 #define hfx_rdp_queue(cmd) { \
@@ -245,7 +245,7 @@ int main()
                 break;
         }
 
-        HFX_WRITE_REG(HFX_REG_RB_START, rb_start & 0x3FFF);
+        HFX_WRITE_REG(HFX_REG_RB_START, rb_start & 0x3FF);
     }
 
     return 0;

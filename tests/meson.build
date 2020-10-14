@@ -32,7 +32,7 @@ test_dict = {
     'hfx_clear' : [
         'main.c'
     ],
-    'hfx_draw_tri_no_transform' : [
+    'hfx_draw_single_tri' : [
         'main.c'
     ],
 }

@@ -93,7 +93,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
     uint32_t dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
     
     /* determine the winding of the triangle */
-    uint32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
+    int32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
     uint32_t flip = (winding > 0 ? 1 : 0 ); 
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,

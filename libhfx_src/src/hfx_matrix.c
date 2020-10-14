@@ -13,7 +13,7 @@ void hfx_matrix_multiply(hfx_state *state, float *a, float *b, float *result)
         {
             for(int k=0; k < 4; k++)
             {
-                temp[i*4 + j] += a[i*4 + k]*b[k*4 + j];
+                temp[i*4 + j] += a[k*4 + j]*b[i*4 + k];
             }
         }
     }

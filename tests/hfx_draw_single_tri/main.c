@@ -23,13 +23,6 @@ static char pbuf[256];
 static uint64_t cmds1[] =
 {
     0xED000000005003C0ULL,
-    /* These two commands set blend enable and */
-    /* the blend color. Should really be replaced with APIs */
-    /* that are used for triangle drawing */
-#if 0
-    0xEF0000FF80000000ULL,
-    0xF9000000FF0000FFULL,
-#endif
 };
 
 /* This triggers a full sync to happen */
@@ -95,18 +88,32 @@ int main(void)
     {
         if(done == 0)
         {
-            angle += 1.0f;
+            if(angle == 360)
+                angle = 0;
+            else
+                angle += 1.0f;
             done = 1;
 
             sprintf(pbuf, "Done %f", angle);
             graphics_draw_text(state->display, 0, 100, pbuf);
 
+            sprintf(pbuf, "Start 0x%08lx, end 0x%08lx", hfx_read_reg(HFX_VADDR_REG_RB_START), state->rb_end);
+            graphics_draw_text(state->display, 0, 130, pbuf);
+
+            uint32_t rdp_start = hfx_read_reg(0x04100000);
+            uint32_t rdp_end = hfx_read_reg(0x04100004);
+            uint32_t rdp_current = hfx_read_reg(0x04100008);
+
+            sprintf(pbuf, "Start 0x%lx, end 0x%lx, current 0x%lx", rdp_start, rdp_end, rdp_current);
+            graphics_draw_text(state->display, 0, 160, pbuf);
+
             hfx_swap_buffers(state);
 
+            // Queue the next frame up
             hfx_clear(state, HFX_COLOR_BUFFER_BIT);
             hfx_load_identity(state);
+            hfx_translate_f(state, 100.0f, 100.0f, 0.0f);
             hfx_rotate_f(state, angle, 0, 0, 1);
-            //hfx_translate_f(state, angle, 50.0f, 0.0f);
 
             hfx_color_f(state, 1.0f, 1.0f, 0.0f, 1.0f);
             hfx_draw_tri_f(state, v1, v2, v3);
