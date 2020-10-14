@@ -67,12 +67,14 @@
 #define     HFX_RDP_CMD_TRI_YH_MASK                 0x3fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
 #define HFX_RDP_CMD_SET_BLEND_COLOR                 0x39ull
+#define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
 
 
 #define HFX_RDP_CMD_SET_BLEND_MODE(type, value) (((value)&HFX_RDP_CMD_SET_MODE_BLEND_MODE_MASK)<<HFX_RDP_CMD_SET_MODE_BLEND_MODE_##type##_SHIFT)
 
 
 #define HFX_RDP_MAKE_CMD(cmd) ((HFX_RDP_CMD_RESERVE|(cmd)) << HFX_RDP_CMD_SHIFT)
+#define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
 #define HFX_RDP_PKT_FILL_RECT(xl, yl, xh, yh) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_FILL_RECT) | \
                                               (((xl)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XL_SHIFT) | \

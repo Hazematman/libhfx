@@ -31,11 +31,12 @@ void hfx_clear(hfx_state *state, uint32_t bits)
     if(bits & HFX_COLOR_BUFFER_BIT)
     {
         uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g, state->clear_color.b, state->clear_color.a);
-        uint64_t cmds[3];
+        uint64_t cmds[4];
         cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM|HFX_RDP_CMD_SET_MODE_FILL|HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER|HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER|HFX_RDP_CMD_SET_MODE_FORCE_BLEND);
         cmds[1] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[2] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-
+        cmds[3] = HFX_RDP_PKT_SYNC_PIPE;
+        
         hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     }   
 }
@@ -43,6 +44,12 @@ void hfx_clear(hfx_state *state, uint32_t bits)
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
 {
     uint64_t cmds[2];
+    float v1_t[4], v2_t[4], v3_t[4];
+
+    hfx_matrix_vector_multiply(state, state->model_matrix, v1, v1_t);
+    hfx_matrix_vector_multiply(state, state->model_matrix, v2, v2_t);
+    hfx_matrix_vector_multiply(state, state->model_matrix, v3, v3_t);
+
     cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_BLEND_MODE(1A_0, 2) |
                                    HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER  |
                                    HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER);
@@ -51,5 +58,5 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
                                                         state->vertex_color.b,
                                                         state->vertex_color.a));
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
-    hfx_render_tri_f(state, v1, v2, v3);
+    hfx_render_tri_f(state, v1_t, v2_t, v3_t);
 }

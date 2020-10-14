@@ -23,6 +23,8 @@ typedef struct hfx_state {
     hfx_color clear_color;
     hfx_color vertex_color;
 
+    float model_matrix[16];
+
     struct
     {
         uint32_t width;

@@ -21,6 +21,21 @@ void hfx_matrix_multiply(hfx_state *state, float *a, float *b, float *result)
     memcpy(result, temp, sizeof(temp));
 }
 
+void hfx_matrix_vector_multiply(hfx_state *state, float *mat, float *vec, float *result)
+{
+    float temp[4] = {0};
+
+    for(int i=0; i < 4; i++)
+    {
+        for(int j=0; j < 4; j++)
+        {
+            temp[i] += mat[j*4 + i]*vec[j];
+        }
+    }
+
+    memcpy(result, temp, sizeof(temp));
+}
+
 void hfx_normalize(hfx_state *state, float *vector, float *result)
 {
     float temp[4];
@@ -38,8 +53,8 @@ void hfx_load_identity(hfx_state *state)
 {
     state->model_matrix[0] = 1.0f;
     state->model_matrix[1] = 0.0f;
-    state->model_matrix[1] = 0.0f;
-    state->model_matrix[1] = 0.0f;
+    state->model_matrix[2] = 0.0f;
+    state->model_matrix[3] = 0.0f;
 
     state->model_matrix[4] = 0.0f;
     state->model_matrix[5] = 1.0f;
