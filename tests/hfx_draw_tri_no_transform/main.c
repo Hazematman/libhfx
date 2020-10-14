@@ -15,6 +15,8 @@ static bitdepth_t bit = DEPTH_16_BPP;
 static int done = 1;
 static hfx_state *state;
 
+static char pbuf[256];
+
 /* This command sets the clip area */
 /* Should not be required, internal library code should */
 /* Handle this on init */
@@ -96,7 +98,8 @@ int main(void)
             angle += 1.0f;
             done = 1;
 
-            graphics_draw_text(state->display, 0, 100, "Done");
+            sprintf(pbuf, "Done %f", angle);
+            graphics_draw_text(state->display, 0, 100, pbuf);
 
             hfx_swap_buffers(state);
 
