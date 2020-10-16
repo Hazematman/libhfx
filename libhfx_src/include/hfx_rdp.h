@@ -66,7 +66,25 @@
 #define     HFX_RDP_CMD_TRI_YM_SHIFT                16ull
 #define     HFX_RDP_CMD_TRI_YH_MASK                 0x3fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
+#define HFX_RDP_CMD_TRI_SHADE   0x0cull
 #define HFX_RDP_CMD_SET_BLEND_COLOR                 0x39ull
+#define HFX_RDP_CMD_SET_COMBINE_MODE                0x3cull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_A_0_SHIFT      52ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_C_0_SHIFT      47ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_A_0_SHIFT    44ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_C_0_SHIFT    41ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_A_1_SHIFT      37ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_C_1_SHIFT      32ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_B_0_SHIFT      28ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_B_1_SHIFT      24ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_A_1_SHIFT    21ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_C_1_SHIFT    18ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_0_SHIFT      15ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_B_0_SHIFT    12ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_0_SHIFT    9ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT      6ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_B_1_SHIFT    3ull
+#define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT    0ull
 #define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
 
 
@@ -82,6 +100,7 @@
                                               (((xh)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XH_SHIFT) | \
                                               (((yh)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_YH_SHIFT))
 #define HFX_RDP_PKT_SET_BLEND_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_BLEND_COLOR)|((uint64_t)(color)))
+#define HFX_RDP_PKT_SET_COMBINE_MODE(modes) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_COMBINE_MODE) | ((uint64_t)(modes)))
 #define HFX_RDP_PKT_SET_MODE(modes) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_MODE) | HFX_RPD_CMD_SET_MODE_RESERVED | ((uint64_t)(modes)))
 #define HFX_RDP_PKT_TRI_EDGE_COEFF_0(cmd, left_major, level, tile, yl, ym, yh) \
             (HFX_RDP_MAKE_CMD(cmd) | \
@@ -94,11 +113,20 @@
 
 /* Before calling any of the triangle draw APIs ensure that a variable called buffer_index exists and is set to the offset you want to begin */
 /* writing the triangle draw commands to */
-#define HFX_RDP_PKT_TRI_NON_SHADE(buffer, left_major, level, tile, yl, ym, yh, xl, dxLdy, xh, dxHdy, xm, dxMdy) \
-            (buffer)[buffer_index++] = HFX_RDP_PKT_TRI_EDGE_COEFF_0(HFX_RDP_CMD_TRI_NON_SHADE, left_major, level, tile, yl, ym, yh); \
+#define HFX_RDP_PKT_TRI_NON_SHADE(buffer, mode, left_major, level, tile, yl, ym, yh, xl, dxLdy, xh, dxHdy, xm, dxMdy) \
+            (buffer)[buffer_index++] = HFX_RDP_PKT_TRI_EDGE_COEFF_0(mode, left_major, level, tile, yl, ym, yh); \
             (buffer)[buffer_index++] = ((uint64_t)(xl) << 32ull) | ((uint64_t)(dxLdy)); \
             (buffer)[buffer_index++] = ((uint64_t)(xh) << 32ull) | ((uint64_t)(dxHdy)); \
             (buffer)[buffer_index++] = ((uint64_t)(xm) << 32ull) | ((uint64_t)(dxMdy));
+#define HFX_RDP_PKT_TRI_SHADE(buffer, r, g, b, a, drdx, dgdx, dbdx, dadx, drdy, dgdy, dbdy, dady, drde, dgde, dbde, dade) \
+            (buffer)[buffer_index++] = ((((uint64_t)(r))&0xFFFF0000) << 32) | ((((uint64_t)(g))&0xFFFF0000) << 16) | ((((uint64_t)(b))&0xFFFF0000)) | ((((uint64_t)(a))&0xFFFF0000) >> 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drdx))&0xFFFF0000) << 32) | ((((uint64_t)(dgdx))&0xFFFF0000) << 16) | ((((uint64_t)(dbdx))&0xFFFF0000)) | ((((uint64_t)(dadx))&0xFFFF0000) >> 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(r))&0x0000FFFF) << 48) | ((((uint64_t)(g))&0x0000FFFF) << 32) | ((((uint64_t)(b))&0x0000FFFF) << 16) | ((((uint64_t)(a))&0x0000FFFF)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drdx))&0x0000FFFF) << 48) | ((((uint64_t)(dgdx))&0x0000FFFF) << 32) | ((((uint64_t)(dbdx))&0x0000FFFF) << 16) | ((((uint64_t)(dadx))&0x0000FFFF)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drde))&0xFFFF0000) << 32) | ((((uint64_t)(dgde))&0xFFFF0000) << 16) | ((((uint64_t)(dbde))&0xFFFF0000)) | ((((uint64_t)(dade))&0xFFFF0000) >> 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drdy))&0xFFFF0000) << 32) | ((((uint64_t)(dgdy))&0xFFFF0000) << 16) | ((((uint64_t)(dbdy))&0xFFFF0000)) | ((((uint64_t)(dady))&0xFFFF0000) >> 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drde))&0x0000FFFF) << 48) | ((((uint64_t)(dgde))&0x0000FFFF) << 32) | ((((uint64_t)(dbde))&0x0000FFFF) << 16) | ((((uint64_t)(dade))&0x0000FFFF)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(drdy))&0x0000FFFF) << 48) | ((((uint64_t)(dgdy))&0x0000FFFF) << 32) | ((((uint64_t)(dbdy))&0x0000FFFF) << 16) | ((((uint64_t)(dady))&0x0000FFFF));
 
 
 #endif

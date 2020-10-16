@@ -63,7 +63,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
     /* conversion algorithm */
-    uint64_t edge_coef[4];
+    uint64_t edge_coef[4+8];
     uint32_t buffer_index = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
@@ -97,6 +97,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
     uint32_t flip = (winding > 0 ? 1 : 0 ); 
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
+                              HFX_RDP_CMD_TRI_SHADE,
                               flip,
                               0,
                               0,
@@ -109,6 +110,10 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
                               dxhdy,
                               xm,
                               dxmdy);
+    HFX_RDP_PKT_TRI_SHADE(edge_coef, (255ull<<16), 0, 0, (255ull<<16),
+                                     0,0,0,0,
+                                     0,0,0,0,
+                                     0,0,0,0);
 
     hfx_cmd_rdp(state, sizeof(edge_coef)/sizeof(uint64_t), edge_coef);
 }
