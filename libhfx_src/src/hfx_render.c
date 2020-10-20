@@ -3,6 +3,7 @@
 #include <hfx_int.h>
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
+#include <math.h>
 
 void hfx_render_init(hfx_state *state)
 {
@@ -59,7 +60,23 @@ void hfx_render_tri(hfx_state *state, HFXfixed *v1, HFXfixed *v2, HFXfixed *v3)
     hfx_rb_queue(state, f2);
 }
 
-void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
+void barycentric(float px, float py, float x1, float y1, float x2, float y2, float x3, float y3, float *u, float *v, float *w)
+{
+    float v0x = x2 - x1, v0y = y2 - y1; 
+    float v1x = x3 - x1, v1y = y3 - y1; 
+    float v2x = px - x1, v2y = py - y1;
+    float d00 = v0x*v0x + v0y * v0y;
+    float d01 = v0x*v1x + v0y * v1y;
+    float d11 = v1x*v1x + v1y * v1y;
+    float d20 = v2x*v0x + v2y * v0y;
+    float d21 = v2x*v1x + v2y * v1y;
+    float denom = d00 * d11 - d01 * d01;
+    *v = (d11 * d20 - d01 * d21) / denom;
+    *w = (d00 * d21 - d01 * d20) / denom;
+    *u = 1.0f - *v - *w;
+}
+
+void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
     /* conversion algorithm */
@@ -71,30 +88,94 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
     float x1 = v1[0], y1 = v1[1];
     float x2 = v2[0], y2 = v2[1];
     float x3 = v3[0], y3 = v3[1];
+    
+    float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
-    if( y1 > y2 ) { temp_x = x2, temp_y = y2; y2 = y1; y1 = temp_y; x2 = x1; x1 = temp_x; }
-    if( y2 > y3 ) { temp_x = x3, temp_y = y3; y3 = y2; y2 = temp_y; x3 = x2; x2 = temp_x; }
-    if( y1 > y2 ) { temp_x = x2, temp_y = y2; y2 = y1; y1 = temp_y; x2 = x1; x1 = temp_x; }
+    if( y1 > y2 ) 
+    { 
+        temp_x = x2, temp_y = y2; temp_c = c2;
+        y2 = y1; y1 = temp_y; 
+        x2 = x1; x1 = temp_x; 
+        c2 = c1; c1 = temp_c;
+    }
+    if( y2 > y3 ) 
+    { 
+        temp_x = x3, temp_y = y3; temp_c = c3;
+        y3 = y2; y2 = temp_y; 
+        x3 = x2; x2 = temp_x; 
+        c3 = c2; c2 = temp_c;
+    }
+    if( y1 > y2 ) 
+    { 
+        temp_x = x2, temp_y = y2; temp_c = c2;
+        y2 = y1; y1 = temp_y; 
+        x2 = x1; x1 = temp_x; 
+        c2 = c1; c1 = temp_c;
+    }
 
     /* calculate Y edge coefficients in 11.2 fixed format */
     uint32_t yh = y1 * to_fixed_11_2;
     uint32_t ym = y2 * to_fixed_11_2;
     uint32_t yl = y3 * to_fixed_11_2;
     
-    /* calculate X edge coefficients in 16.16 fixed format */
-    uint32_t xh = x1 * to_fixed_16_16;
-    uint32_t xm = x1 * to_fixed_16_16;
-    uint32_t xl = x2 * to_fixed_16_16;
-    
+    float dxhdy_f = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) );
+    float dxmdy_f = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) );
     /* calculate inverse slopes in 16.16 fixed format */
-    uint32_t dxhdy = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) ) * to_fixed_16_16;
-    uint32_t dxmdy = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) ) * to_fixed_16_16;
+    uint32_t dxhdy = dxhdy_f * to_fixed_16_16;
+    uint32_t dxmdy = dxmdy_f * to_fixed_16_16;
     uint32_t dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
+
+    /* calculate X edge coefficients in 16.16 fixed format */
+    uint32_t xh = (x1-dxhdy_f) * to_fixed_16_16;
+    uint32_t xm = (x1-dxmdy_f) * to_fixed_16_16;
+    uint32_t xl = x2 * to_fixed_16_16;
     
     /* determine the winding of the triangle */
     int32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
     uint32_t flip = (winding > 0 ? 1 : 0 ); 
+
+    uint32_t r = c1[0]*to_fixed_16_16;
+    uint32_t g = c1[1]*to_fixed_16_16;
+    uint32_t b = c1[2]*to_fixed_16_16;
+    uint32_t a = c1[3]*to_fixed_16_16;
+
+    uint32_t drde;
+    uint32_t dgde;
+    uint32_t dbde;
+    uint32_t dade;
+    uint32_t drdx;
+    uint32_t dgdx;
+    uint32_t dbdx;
+    uint32_t dadx;
+    uint32_t drdy;
+    uint32_t dgdy;
+    uint32_t dbdy;
+    uint32_t dady;
+
+    {
+        float u2,v2,w2,u3,v3,w3,u4,v4,w4;
+        barycentric(x1+1,y1,x1,y1,x2,y2,x3,y3, &u2, &v2, &w2);
+        barycentric(x1,y1+1,x1,y1,x2,y2,x3,y3, &u3, &v3, &w3);
+        barycentric(x1+dxhdy_f,y1+1,x1,y1,x2,y2,x3,y3, &u4, &v4, &w4);
+        
+        drdx = ((c1[0]*u2 + c2[0]*v2 + c3[0]*w2) - c1[0]) * to_fixed_16_16;
+        dgdx = ((c1[1]*u2 + c2[1]*v2 + c3[1]*w2) - c1[1]) * to_fixed_16_16;
+        dbdx = ((c1[2]*u2 + c2[2]*v2 + c3[2]*w2) - c1[2]) * to_fixed_16_16;
+        dadx = ((c1[3]*u2 + c2[3]*v2 + c3[3]*w2) - c1[3]) * to_fixed_16_16;
+
+        drdy = ((c1[0]*u3 + c2[0]*v3 + c3[0]*w3) - c1[0]) * to_fixed_16_16;
+        dgdy = ((c1[1]*u3 + c2[1]*v3 + c3[1]*w3) - c1[1]) * to_fixed_16_16;
+        dbdy = ((c1[2]*u3 + c2[2]*v3 + c3[2]*w3) - c1[2]) * to_fixed_16_16;
+        dady = ((c1[3]*u3 + c2[3]*v3 + c3[3]*w3) - c1[3]) * to_fixed_16_16;
+
+        drde = ((c1[0]*u4 + c2[0]*v4 + c3[0]*w4) - c1[0]) * to_fixed_16_16;
+        dgde = ((c1[1]*u4 + c2[1]*v4 + c3[1]*w4) - c1[1]) * to_fixed_16_16;
+        dbde = ((c1[2]*u4 + c2[2]*v4 + c3[2]*w4) - c1[2]) * to_fixed_16_16;
+        dade = ((c1[3]*u4 + c2[3]*v4 + c3[3]*w4) - c1[3]) * to_fixed_16_16;
+    }
+
+
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
                               HFX_RDP_CMD_TRI_SHADE,
@@ -110,10 +191,10 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3)
                               dxhdy,
                               xm,
                               dxmdy);
-    HFX_RDP_PKT_TRI_SHADE(edge_coef, (255ull<<16), 0, 0, (255ull<<16),
-                                     0,0,0,0,
-                                     0,0,0,0,
-                                     0,0,0,0);
+    HFX_RDP_PKT_TRI_SHADE(edge_coef, r, g, b, a,
+                                     drdx, dgdx, dbdx, dadx,
+                                     drdy, dgdy, dbdy, dady,
+                                     drde, dgde, dbde, dade);
 
     hfx_cmd_rdp(state, sizeof(edge_coef)/sizeof(uint64_t), edge_coef);
 }

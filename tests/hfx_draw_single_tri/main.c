@@ -52,6 +52,7 @@ int main(void)
     hfx_register_rsp_int(state, hfx_int);
 
     float v1[4], v2[4], v3[4];
+    float vc1[4], vc2[4], vc3[4];
 
     v1[0] = 0.0f;
     v1[1] = 0.0f;
@@ -68,6 +69,21 @@ int main(void)
     v3[2] = 0.0f;
     v3[3] = 1.0f;
 
+    vc1[0] = 255.0f;
+    vc1[1] = 0.0f;
+    vc1[2] = 0.0f;
+    vc1[3] = 255.0f;
+
+    vc2[0] = 0.0f;
+    vc2[1] = 255.0f;
+    vc2[2] = 0.0f;
+    vc2[3] = 255.0f;
+
+    vc3[0] = 0.0f;
+    vc3[1] = 0.0f;
+    vc3[2] = 255.0f;
+    vc3[3] = 255.0f;    
+
     // TODO this rdp command is only here to set the default clip
     // Should really be part of the hfx library
     hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
@@ -76,7 +92,7 @@ int main(void)
     hfx_translate_f(state, 50.0f, 50.0f, 0.0f);
 
     hfx_color_f(state, 1.0f, 1.0f, 0.0f, 1.0f);
-    hfx_draw_tri_f(state, v1, v2, v3);
+    hfx_draw_tri_f(state, v1, v2, v3, vc1, vc2, vc3);
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_rb_submit(state);
 
@@ -93,6 +109,8 @@ int main(void)
             else
                 angle += 1.0f;
             done = 1;
+
+            //angle = 240.0f;
 
             sprintf(pbuf, "Done %f", angle);
             graphics_draw_text(state->display, 0, 100, pbuf);
@@ -116,7 +134,7 @@ int main(void)
             hfx_rotate_f(state, angle, 0, 0, 1);
 
             hfx_color_f(state, 1.0f, 1.0f, 0.0f, 1.0f);
-            hfx_draw_tri_f(state, v1, v2, v3);
+            hfx_draw_tri_f(state, v1, v2, v3, vc1, vc2, vc3);
             hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
             hfx_rb_submit(state);
         }
