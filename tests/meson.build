@@ -35,6 +35,9 @@ test_dict = {
     'hfx_draw_single_tri' : [
         'main.c'
     ],
+    'hfx_cube' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here

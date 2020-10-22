@@ -88,7 +88,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float x1 = v1[0], y1 = v1[1];
     float x2 = v2[0], y2 = v2[1];
     float x3 = v3[0], y3 = v3[1];
-    
+
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
@@ -127,8 +127,8 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
 
     /* calculate X edge coefficients in 16.16 fixed format */
-    uint32_t xh = (x1-dxhdy_f) * to_fixed_16_16;
-    uint32_t xm = (x1-dxmdy_f) * to_fixed_16_16;
+    uint32_t xh = (x1) * to_fixed_16_16;
+    uint32_t xm = (x1) * to_fixed_16_16;
     uint32_t xl = x2 * to_fixed_16_16;
     
     /* determine the winding of the triangle */

@@ -25,6 +25,12 @@ typedef struct hfx_state {
 
     float model_matrix[16];
 
+    float *vertex_pointer;
+    uint32_t vertex_size;
+
+    uint8_t *color_pointer;
+    uint32_t color_size;
+
     struct
     {
         uint32_t width;

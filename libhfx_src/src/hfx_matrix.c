@@ -135,3 +135,18 @@ void hfx_scale_f(hfx_state *state, float sx, float sy, float sz)
 
     hfx_matrix_multiply(state, state->model_matrix, result, state->model_matrix);
 }
+
+void hfx_ortho_f(hfx_state *state, float left, float right, float top, float bottom, float near, float far)
+{
+    float result[16] = {0};
+
+    result[0] = 2.0f / (right - left);
+    result[5] = 2.0f / (top - bottom);
+    result[10] = -2.0f / (far-near);
+    result[12] = -(right + left) / (right - left);
+    result[13] = -(top + bottom) / (top - bottom);
+    result[14] = -(far + near) / (far - near);
+    result[15] = 1.0f;
+
+    hfx_matrix_multiply(state, state->model_matrix, result, state->model_matrix);
+}

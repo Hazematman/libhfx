@@ -25,6 +25,59 @@ void hfx_color_f(hfx_state *state, float r, float g, float b, float a)
     state->vertex_color.a = a*255;
 }
 
+void hfx_vertex_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data)
+{
+    state->vertex_pointer = (float*)data;
+    state->vertex_size = size;
+}
+
+void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data)
+{
+    state->color_pointer = (uint8_t*)data;
+    state->color_size = size;
+}
+
+void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t count)
+{
+    uint32_t num_tri = count / 3;
+    float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4];
+
+    for(int i = 0; i < num_tri; i++)
+    {
+        v1[0] = state->vertex_pointer[i*3*state->vertex_size+0];
+        v1[1] = state->vertex_pointer[i*3*state->vertex_size+1];
+        v1[2] = state->vertex_pointer[i*3*state->vertex_size+2];
+        v1[3] = 1.0f;
+
+        v2[0] = state->vertex_pointer[i*3*state->vertex_size+3];
+        v2[1] = state->vertex_pointer[i*3*state->vertex_size+4];
+        v2[2] = state->vertex_pointer[i*3*state->vertex_size+5];
+        v2[3] = 1.0f;
+
+        v3[0] = state->vertex_pointer[i*3*state->vertex_size+6];
+        v3[1] = state->vertex_pointer[i*3*state->vertex_size+7];
+        v3[2] = state->vertex_pointer[i*3*state->vertex_size+8];
+        v3[3] = 1.0f;
+
+        c1[0] = (float)state->color_pointer[i*3*state->color_size+0];
+        c1[1] = (float)state->color_pointer[i*3*state->color_size+1];
+        c1[2] = (float)state->color_pointer[i*3*state->color_size+2];
+        c1[3] = (float)state->color_pointer[i*3*state->color_size+3];
+
+        c2[0] = (float)state->color_pointer[i*3*state->color_size+4];
+        c2[1] = (float)state->color_pointer[i*3*state->color_size+5];
+        c2[2] = (float)state->color_pointer[i*3*state->color_size+6];
+        c2[3] = (float)state->color_pointer[i*3*state->color_size+7];
+
+        c3[0] = (float)state->color_pointer[i*3*state->color_size+8];
+        c3[1] = (float)state->color_pointer[i*3*state->color_size+9];
+        c3[2] = (float)state->color_pointer[i*3*state->color_size+10];
+        c3[3] = (float)state->color_pointer[i*3*state->color_size+11];
+
+        hfx_draw_tri_f(state, v1, v2, v3, c1, c2, c3);
+    }
+}
+
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
     /* If we are clearing color buffer */
@@ -64,4 +117,7 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
 
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_render_tri_f(state, v1_t, v2_t, v3_t, vc1, vc2, vc3);
+    
+    /* TODO this submit should not be needed */
+    hfx_rb_submit(state);
 }
