@@ -4,6 +4,7 @@
 
 #define HFX_RDP_CMD_SHIFT           56ull
 #define HFX_RDP_CMD_MASK            (0x3f << HFX_RDP_CMD_SHIFT)
+#define HFX_RDP_CMD_SET_Z_IMAGE     0x3eull
 #define HFX_RDP_CMD_RESERVE         0xc0ull
 #define HFX_RDP_CMD_SET_FILL_COLOR  0x37ull
 #define HFX_RDP_CMD_FILL_RECT       0x36ull
@@ -93,6 +94,7 @@
 
 
 #define HFX_RDP_MAKE_CMD(cmd) ((HFX_RDP_CMD_RESERVE|(cmd)) << HFX_RDP_CMD_SHIFT)
+#define HFX_RDP_PKT_SET_Z_IMAGE(z_image) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_Z_IMAGE) | (uintptr_t)(z_image))
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
 #define HFX_RDP_PKT_FILL_RECT(xl, yl, xh, yh) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_FILL_RECT) | \
