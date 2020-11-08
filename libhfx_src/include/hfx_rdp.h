@@ -66,7 +66,8 @@
 #define     HFX_RDP_CMD_TRI_YM_SHIFT                16ull
 #define     HFX_RDP_CMD_TRI_YH_MASK                 0x3fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
-#define HFX_RDP_CMD_TRI_SHADE   0x0cull
+#define HFX_RDP_CMD_TRI_SHADE                       0x0cull
+#define HFX_RDP_CMD_TRI_SHADE_DEPTH                 0x0dull
 #define HFX_RDP_CMD_SET_BLEND_COLOR                 0x39ull
 #define HFX_RDP_CMD_SET_COMBINE_MODE                0x3cull
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_A_0_SHIFT      52ull
@@ -127,6 +128,8 @@
             (buffer)[buffer_index++] = ((((uint64_t)(drdy))&0xFFFF0000) << 32) | ((((uint64_t)(dgdy))&0xFFFF0000) << 16) | ((((uint64_t)(dbdy))&0xFFFF0000)) | ((((uint64_t)(dady))&0xFFFF0000) >> 16); \
             (buffer)[buffer_index++] = ((((uint64_t)(drde))&0x0000FFFF) << 48) | ((((uint64_t)(dgde))&0x0000FFFF) << 32) | ((((uint64_t)(dbde))&0x0000FFFF) << 16) | ((((uint64_t)(dade))&0x0000FFFF)); \
             (buffer)[buffer_index++] = ((((uint64_t)(drdy))&0x0000FFFF) << 48) | ((((uint64_t)(dgdy))&0x0000FFFF) << 32) | ((((uint64_t)(dbdy))&0x0000FFFF) << 16) | ((((uint64_t)(dady))&0x0000FFFF));
-
+#define HFX_RDP_PKT_TRI_DEPTH(buffer, inv_z, dzdx, dzdy, dzde) \
+            (buffer)[buffer_index++] = ((uint64_t)(inv_z) << 32) | ((uint64_t)(dzdx)); \
+            (buffer)[buffer_index++] = ((uint64_t)(dzde) << 32) | ((uint64_t)(dzdy));
 
 #endif
