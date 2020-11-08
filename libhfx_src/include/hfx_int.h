@@ -2,6 +2,8 @@
 #define HFX_INT_H
 #include <stdint.h>
 
+#define HFX_UNUSED(x) (void)(x)
+
 void hfx_write_reg(uint32_t addr, uint32_t data);
 uint32_t hfx_read_reg(uint32_t addr);
 

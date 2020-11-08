@@ -117,7 +117,4 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
 
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
     hfx_render_tri_f(state, v1_t, v2_t, v3_t, vc1, vc2, vc3);
-    
-    /* TODO this submit should not be needed */
-    hfx_rb_submit(state);
 }

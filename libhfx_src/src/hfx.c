@@ -3,6 +3,8 @@
 #include <hfx_int.h>
 #include <hfx_rb.h>
 #include <libdragon.h>
+#include <stdio.h>
+#include "system.h"
 
 #define RB_SIZE 1024
 
@@ -11,6 +13,24 @@ extern const void _hfx_ucode_start;
 extern const void _hfx_ucode_end;
 
 static hfx_state state __attribute__((aligned(8)));
+
+static int __console_write( char *buf, unsigned int len )
+{
+    /* Write to special IO register in cen64 EMU */
+    for(int x = 0; x < len; x++)
+    {
+        hfx_write_reg(0x18000004, (uint32_t)buf[x]);
+    }
+
+    /* Always write all */
+    return len;
+}
+
+static stdio_t console_calls = {
+    0,
+    __console_write,
+    0
+};
 
 hfx_state *hfx_init()
 {
@@ -44,6 +64,12 @@ hfx_state *hfx_init()
 
 
     hfx_cmd_register_display(&state);
+
+    HFX_UNUSED(console_calls);
+#ifdef HFX_DEBUG
+    /* Register ourselves with newlib */
+    hook_stdio_calls( &console_calls );
+#endif
 
     return &state;
 }

@@ -3,6 +3,7 @@
 #include <hfx_rb.h>
 #include <hfx_int.h>
 #include <libdragon.h>
+#include <stdio.h>
 #include <stdint.h>
 
 void hfx_rb_calc_size_mask(hfx_state *state)
@@ -14,19 +15,30 @@ void hfx_rb_calc_size_mask(hfx_state *state)
 void hfx_rb_reserve(hfx_state *state, uint32_t num_cmds)
 {
     uint32_t num_bytes = num_cmds*4;
-    uint32_t rb_start = 0;
+    uint32_t rb_start = hfx_read_reg(HFX_VADDR_REG_RB_START);
     uint32_t rb_size = 0;
     uint32_t num_bytes_in_buffer = 0;
 
     /* If command buffer is not empty */
-    if(state->rb_end != hfx_read_reg(HFX_VADDR_REG_RB_START))
+    if(state->rb_end != rb_start)
     {
-        /* While there is not enough space in the command buffer */
-        do {
-            rb_start = hfx_read_reg(HFX_VADDR_REG_RB_START);
-            num_bytes_in_buffer = (state->rb_end - rb_start + 4) % state->rb_size_mask;
-            rb_size = state->rb_size - num_bytes_in_buffer;
-        } while(rb_size < num_bytes);
+        num_bytes_in_buffer = (state->rb_end - rb_start + 4) & state->rb_size_mask;
+        rb_size = state->rb_size - num_bytes_in_buffer;
+
+        if(rb_size < num_bytes)
+        {
+            /* If there is not enough space in buffer */
+            /* submit commands and wait until there is */
+            /* enough space to insert the new commands */
+            hfx_rb_submit(state);
+
+            /* While there is not enough space in the command buffer */
+            do {
+                rb_start = hfx_read_reg(HFX_VADDR_REG_RB_START);
+                num_bytes_in_buffer = (state->rb_end - rb_start + 4) & state->rb_size_mask;
+                rb_size = state->rb_size - num_bytes_in_buffer;
+            } while(rb_size < num_bytes);
+        }
     }
 }
 
