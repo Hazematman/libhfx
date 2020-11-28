@@ -4,6 +4,7 @@
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
 #include <math.h>
+#include <stdio.h>
 
 void hfx_render_init(hfx_state *state)
 {
@@ -84,6 +85,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t buffer_index = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
+    const float to_fixed_24_8 = 16777216.0f;
     float temp_x, temp_y, temp_z;
     float x1 = v1[0], y1 = v1[1], z1 = v1[2];
     float x2 = v2[0], y2 = v2[1], z2 = v2[2];
@@ -164,6 +166,8 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float inv_z2 = 1.0f / z2;
     float inv_z3 = 1.0f / z3;
 
+    uint32_t iz1 = (uint32_t)(inv_z1 * to_fixed_24_8);
+    
     {
         float u2,v2,w2,u3,v3,w3,u4,v4,w4;
         barycentric(x1+1,y1,x1,y1,x2,y2,x3,y3, &u2, &v2, &w2);
@@ -187,9 +191,9 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
 
 
         /* Calculate depth values */
-        dzdx = ((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_16_16;
-        dzdy = ((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_16_16;
-        dzde = ((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_16_16;
+        dzdx = (uint32_t)(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_24_8);
+        dzdy = (uint32_t)(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_24_8);
+        dzde = (uint32_t)(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_24_8);
     }
 
 
@@ -212,7 +216,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
                                      drdx, dgdx, dbdx, dadx,
                                      drdy, dgdy, dbdy, dady,
                                      drde, dgde, dbde, dade);
-    HFX_RDP_PKT_TRI_DEPTH(edge_coef, inv_z1, dzdx, dzdy, dzde);
+    HFX_RDP_PKT_TRI_DEPTH(edge_coef, iz1, dzdx, dzdy, dzde);
 
     hfx_cmd_rdp(state, sizeof(edge_coef)/sizeof(uint64_t), edge_coef);
 }

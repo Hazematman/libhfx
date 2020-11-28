@@ -7,6 +7,7 @@
 #include "system.h"
 
 #define RB_SIZE 1024
+#define HFX_DEBUG
 
 extern const void _hfx_ucode_data_start;
 extern const void _hfx_ucode_start;

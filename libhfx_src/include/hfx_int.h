@@ -7,6 +7,9 @@
 void hfx_write_reg(uint32_t addr, uint32_t data);
 uint32_t hfx_read_reg(uint32_t addr);
 
+/* Internal HFX functions */
+void *hfx_display_get_pointer(hfx_state *state);
+
 /* Internal HFX cmds */
 void hfx_cmd_nop(hfx_state *state);
 void hfx_cmd_int(hfx_state *state);

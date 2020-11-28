@@ -134,13 +134,13 @@ uint8_t cube_colors[] =
     0, 0, 255, 255,
 
     // Back
-    255, 0, 0, 255,
-    255, 0, 0, 255,
-    255, 0, 0, 255,
+    255, 100, 0, 255,
+    255, 100, 0, 255,
+    255, 100, 0, 255,
 
-    255, 0, 0, 255,
-    255, 0, 0, 255,
-    255, 0, 0, 255,
+    255, 100, 0, 255,
+    255, 100, 0, 255,
+    255, 100, 0, 255,
 
     // Bottom
     0, 255, 255, 255,
@@ -203,7 +203,7 @@ int main(void)
             hfx_load_identity(state);
             hfx_scale_f(state, 320.0f/2.0f, 240.0f/2.0f, 1.0f);
             hfx_translate_f(state, 1.0f, 1.0f, 0.0f);
-            hfx_translate_f(state, 0.0f, 0.0f, -0.5f);
+            hfx_translate_f(state, 0.0f, 0.0f, 0.5f);
             hfx_rotate_f(state, angle, 0.58f, 0.58f, 0.58f);
             hfx_scale_f(state, 0.2f, 0.2f, 0.2f);
             hfx_draw_arrays(state, HFX_TRIANGLES, 0, 36);

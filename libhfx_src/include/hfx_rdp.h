@@ -4,6 +4,16 @@
 
 #define HFX_RDP_CMD_SHIFT           56ull
 #define HFX_RDP_CMD_MASK            (0x3f << HFX_RDP_CMD_SHIFT)
+#define HFX_RDP_CMD_SET_COLOR_IMAGE 0x3full
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA    0ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_YUV     1ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_INDEX   2ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_IA      3ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_I       4ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_4B        0ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_8B        1ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B       2ull
+#define     HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_32B       3ull
 #define HFX_RDP_CMD_SET_Z_IMAGE     0x3eull
 #define HFX_RDP_CMD_RESERVE         0xc0ull
 #define HFX_RDP_CMD_SET_FILL_COLOR  0x37ull
@@ -55,6 +65,20 @@
 #define     HFX_RDP_CMD_SET_MODE_ALPHA_CVG_SELECT   (1ull << 13ull)
 #define     HFX_RDP_CMD_SET_MODE_CVG_TIMES_ALPHA    (1ull << 12ull)
 /* TODO mising cvg and z-buffer operations here */
+#define     HFX_RDP_CMD_SET_MODE_DEPTH_MODE_OPAQUE              (0ull << 10ull)
+#define     HFX_RDP_CMD_SET_MODE_DEPTH_MODE_INTERPENETRATING    (1ull << 10ull)
+#define     HFX_RDP_CMD_SET_MODE_DEPTH_MODE_TRANSPARENT         (2ull << 10ull)
+#define     HFX_RDP_CMD_SET_MODE_DEPTH_MODE_DECAL               (3ull << 10ull)
+#define     HFX_RDP_CMD_SET_MODE_CVG_DEST_CLAMP                 (0ull << 8ull)
+#define     HFX_RDP_CMD_SET_MODE_CVG_DEST_WARP                  (1ull << 8ull)
+#define     HFX_RDP_CMD_SET_MODE_CVG_DEST_FULL                  (2ull << 8ull)
+#define     HFX_RDP_CMD_SET_MODE_CVG_DEST_SAVE                  (3ull << 8ull)
+#define     HFX_RDP_CMD_SET_MODE_IMAGE_READ                     (1ull << 6ull)
+#define     HFX_RDP_CMD_SET_MODE_Z_UPDATE_ENABLE                (1ull << 5ull)
+#define     HFX_RDP_CMD_SET_MODE_Z_COMPARE_ENABLE               (1ull << 4ull)
+/* NOTE: The following values for Z_SOURCE_SEL may be flipped */
+#define     HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PIXEL             (0ull << 2ull)
+#define     HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PRIM              (1ull << 2ull)
 #define HFX_RDP_CMD_TRI_NON_SHADE   0x08ull
 #define     HFX_RDP_CMD_TRI_LEFT_MAJOR_FLAG_SHIFT   55ull
 #define     HFX_RDP_CMD_TRI_LEVEL_MASK              0x7ull
@@ -94,6 +118,7 @@
 
 
 #define HFX_RDP_MAKE_CMD(cmd) ((HFX_RDP_CMD_RESERVE|(cmd)) << HFX_RDP_CMD_SHIFT)
+#define HFX_RDP_PKT_SET_COLOR_IMAGE(format, size, width, addr) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_COLOR_IMAGE) | ((uint64_t)(format) << 53) | ((uint64_t)(size) << 51) | (((uint64_t)(width-1)&0x3FF)<<32)  | (uintptr_t)(addr))
 #define HFX_RDP_PKT_SET_Z_IMAGE(z_image) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_Z_IMAGE) | (uintptr_t)(z_image))
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
