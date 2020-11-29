@@ -41,6 +41,7 @@ void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t 
 void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t count)
 {
     uint32_t num_tri = count / 3;
+    uint32_t start_tri = start / 3;
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4];
     uint64_t cmds[2];
 
@@ -65,7 +66,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
 
-    for(int i = 0; i < num_tri; i++)
+    for(int i = start_tri; i < num_tri; i++)
     {
         v1[0] = state->vertex_pointer[i*3*state->vertex_size+0];
         v1[1] = state->vertex_pointer[i*3*state->vertex_size+1];

@@ -85,7 +85,6 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t buffer_index = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
-    const float to_fixed_24_8 = 16777216.0f;
     float temp_x, temp_y, temp_z;
     float x1 = v1[0], y1 = v1[1], z1 = v1[2];
     float x2 = v2[0], y2 = v2[1], z2 = v2[2];
@@ -119,6 +118,13 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         c2 = c1; c1 = temp_c;
     }
 
+#if 0
+    printf("Drawing %f %f %f\n%f %f %f\n%f %f %f\n",
+                    x1, y1, z1,
+                    x2, y2, z2,
+                    x3, y3, z3);
+#endif
+
     /* calculate Y edge coefficients in 11.2 fixed format */
     uint32_t yh = y1 * to_fixed_11_2;
     uint32_t ym = y2 * to_fixed_11_2;
@@ -126,16 +132,17 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     
     float dxhdy_f = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) );
     float dxmdy_f = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) );
+    float dxldy_f = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) );
     /* calculate inverse slopes in 16.16 fixed format */
     uint32_t dxhdy = dxhdy_f * to_fixed_16_16;
     uint32_t dxmdy = dxmdy_f * to_fixed_16_16;
-    uint32_t dxldy = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) ) * to_fixed_16_16;
+    uint32_t dxldy = dxldy_f * to_fixed_16_16;
 
     /* calculate X edge coefficients in 16.16 fixed format */
     uint32_t xh = (x1) * to_fixed_16_16;
     uint32_t xm = (x1) * to_fixed_16_16;
-    uint32_t xl = x2 * to_fixed_16_16;
-    
+    uint32_t xl = (x2) * to_fixed_16_16;
+
     /* determine the winding of the triangle */
     int32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
     uint32_t flip = (winding > 0 ? 1 : 0 ); 
@@ -166,7 +173,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float inv_z2 = 1.0f / z2;
     float inv_z3 = 1.0f / z3;
 
-    uint32_t iz1 = (uint32_t)(inv_z1 * to_fixed_24_8);
+    uint32_t iz1 = ((uint32_t)(inv_z1 * to_fixed_16_16) << 12);
     
     {
         float u2,v2,w2,u3,v3,w3,u4,v4,w4;
@@ -191,9 +198,9 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
 
 
         /* Calculate depth values */
-        dzdx = (uint32_t)(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_24_8);
-        dzdy = (uint32_t)(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_24_8);
-        dzde = (uint32_t)(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_24_8);
+        dzdx = ((uint32_t)(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_16_16) << 12);
+        dzdy = ((uint32_t)(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_16_16) << 12);
+        dzde = ((uint32_t)(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_16_16) << 12);
     }
 
 
