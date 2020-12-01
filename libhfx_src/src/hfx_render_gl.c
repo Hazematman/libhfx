@@ -45,7 +45,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4];
     uint64_t cmds[2];
 
-    cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ONE_CYCLE |
+    cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_TWO_CYCLE |
                                    HFX_RDP_CMD_SET_BLEND_MODE(1B_0, 0) |
                                    HFX_RDP_CMD_SET_BLEND_MODE(1A_0, 0) |
                                    HFX_RDP_CMD_SET_BLEND_MODE(2A_0, 0) |
@@ -107,37 +107,34 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
-    uint64_t cmds[1+6];
+    uint32_t index = 0;
+    uint64_t cmds[1+6+4];
 
-    cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_FILL |
-                                   HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER  |
+    cmds[index++] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM |
+                                   HFX_RDP_CMD_SET_MODE_FILL |
+                                   HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER |
                                    HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER);
     if(bits & HFX_DEPTH_BUFFER_BIT)
     {
         uint32_t packed_color = (GPACK_ZDZ(G_MAXFBZ,0)<<16 | GPACK_ZDZ(G_MAXFBZ,0));
-        //uint32_t packed_color = 0;
-        //uint32_t packed_color = (G_MAXFBZ<<16) | G_MAXFBZ;
-        cmds[1] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_depth_buffer);
-        cmds[2] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
-        cmds[3] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-        cmds[4] = HFX_RDP_PKT_SYNC_PIPE;
-        cmds[5] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
-        cmds[6] = HFX_RDP_PKT_SYNC_PIPE;
-
-        hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_depth_buffer);
+        cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
+        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
+        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
+        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
+        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
     }
 
     /* If we are clearing color buffer */
     if(bits & HFX_COLOR_BUFFER_BIT)
     {
         uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g, state->clear_color.b, state->clear_color.a);
-        cmds[1] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM|HFX_RDP_CMD_SET_MODE_FILL|HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER|HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER|HFX_RDP_CMD_SET_MODE_FORCE_BLEND);
-        cmds[2] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
-        cmds[3] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-        cmds[4] = HFX_RDP_PKT_SYNC_PIPE;
-
-        hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+        cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
+        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
+        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
     }   
+
+    hfx_cmd_rdp(state, index, cmds);
 }
 
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)

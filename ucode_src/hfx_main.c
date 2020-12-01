@@ -107,6 +107,7 @@ uint32_t hfx_rdp_size()
 void hfx_rdp_reserve(uint32_t num_bytes)
 {
     uint32_t rdp_size = hfx_rdp_size();
+    HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)|HFX_STATUS_IN_RDP_RESERVE);
     if((rdp_size + num_bytes) >= (HFX_RDP_BUFFER_SIZE*sizeof(uint32_t)))
     {
         /* To deal with buffer wrapping we take the following approach: */
@@ -128,6 +129,8 @@ void hfx_rdp_reserve(uint32_t num_bytes)
 
         hfx_rdp_init();
     }
+
+    HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)&(~HFX_STATUS_IN_RDP_RESERVE));
 }
 
 void hfx_rdp_submit()
@@ -158,43 +161,6 @@ void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
     hfx_rdp_submit();
 }
 
-void hfx_cmd_draw_tri(uint32_t rb_start)
-{
-    uint32_t v1_1_high = HFX_READ_RB(1);
-    uint32_t v1_2_high = HFX_READ_RB(2);
-    uint32_t v2_1_high = HFX_READ_RB(3);
-    uint32_t v2_2_high = HFX_READ_RB(4);
-    uint32_t v3_1_high = HFX_READ_RB(5);
-    uint32_t v3_2_high = HFX_READ_RB(6);
-    uint32_t v1_1_low = HFX_READ_RB(7);
-    uint32_t v1_2_low = HFX_READ_RB(8);
-    uint32_t v2_1_low = HFX_READ_RB(9);
-    uint32_t v2_2_low = HFX_READ_RB(10);
-    uint32_t v3_1_low = HFX_READ_RB(11);
-    uint32_t v3_2_low = HFX_READ_RB(12);
-
-    uint32_t y1 = ((v1_1_high & 0x0000FFFF) << 16) | (v1_1_low & 0x0000FFFF);
-    uint32_t y2 = ((v2_1_high & 0x0000FFFF) << 16) | (v2_1_low & 0x0000FFFF);
-    uint32_t y3 = ((v3_1_high & 0x0000FFFF) << 16) | (v3_1_low & 0x0000FFFF);
-
-    uint32_t x1 = ((v1_1_high & 0xFFFF0000) >> 16) | ((v1_1_low & 0xFFFF0000) >> 16);
-    uint32_t x2 = ((v2_1_high & 0xFFFF0000) >> 16) | ((v2_1_low & 0xFFFF0000) >> 16);
-    uint32_t x3 = ((v3_1_high & 0xFFFF0000) >> 16) | ((v3_1_low & 0xFFFF0000) >> 16);
-
-    uint32_t temp_x, temp_y;
-    if( y1 > y2 ) { temp_x = x2, temp_y = y2; y2 = y1; y1 = temp_y; x2 = x1; x1 = temp_x; }
-    if( y2 > y3 ) { temp_x = x3, temp_y = y3; y3 = y2; y2 = temp_y; x3 = x2; x2 = temp_x; }
-    if( y1 > y2 ) { temp_x = x2, temp_y = y2; y2 = y1; y1 = temp_y; x2 = x1; x1 = temp_x; }
-
-    uint32_t yh = y1 >> 14;
-    uint32_t ym = (y2 & 0x07FFC000) << 2;
-    uint32_t yl = y3 >> 14;
-
-    uint32_t xh = x1;
-    uint32_t xm = x1;
-    uint32_t xl = x2;
-}
-
 int main()
 {
     uint32_t num_rdp_cmds = 0;
@@ -211,7 +177,12 @@ int main()
         hfx_check_rb_ptr();
         uint32_t rb_start = HFX_READ_REG(HFX_REG_RB_START);
         if(rb_start == hfx_rb_end)
+        {
+            HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)|HFX_STATUS_FIFO_EMPTY);
             continue;
+        }
+        HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)&(~HFX_STATUS_FIFO_EMPTY));
+
 
         uint32_t cmd = HFX_READ_RB(0);
         switch(cmd & 0xFF)
@@ -231,10 +202,6 @@ int main()
                 num_rdp_cmds = cmd >> 8;
                 hfx_cmd_set_rdp(rb_start, num_rdp_cmds);
                 rb_start += 4 + num_rdp_cmds*4;
-                break;
-            case HFX_CMD_TRI:
-                hfx_cmd_draw_tri(rb_start);
-                rb_start += 4*13;
                 break;
             default:
                 HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)|HFX_STATUS_INVALID_OP);

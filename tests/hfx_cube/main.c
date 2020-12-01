@@ -152,6 +152,11 @@ uint8_t cube_colors[] =
     0, 255, 255, 255,
 };
 
+void exception(exception_t *data)
+{
+    hfx_fatal_error(state);
+}
+
 int main(void)
 {
     /* enable interrupts (on the CPU) */
@@ -159,6 +164,8 @@ int main(void)
 
     /* Initialize peripherals */
     display_init( res, bit, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE );
+
+    register_exception_handler(exception);
 
     register_DP_handler(hfx_int);
     set_DP_interrupt(1);
@@ -185,16 +192,34 @@ int main(void)
 
 
     float angle = 0;
-
+    uint32_t count = 0;
+    int tri = 2;
     while(1)
     {
+        if(count > 1*1000*1000)
+        {
+            hfx_fatal_error(state);
+        }
+
         if(done == 0)
         {
             if(angle == 360)
+            {
                 angle = 0;
+                tri += 1;
+                if(tri >= 12)
+                    tri = 0;
+            }
             else
+            {
                 angle += 1.0f;
+            }
+            
             done = 1;
+            count = 0;
+
+            sprintf(pbuf, "Done %f", angle);
+            graphics_draw_text(state->display, 0, 100, pbuf);
 
             hfx_swap_buffers(state);
 
@@ -210,5 +235,8 @@ int main(void)
             hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
             hfx_rb_submit(state);
         }
+
+        count += 1;
+        hfx_wait_us(1);
     }
 }

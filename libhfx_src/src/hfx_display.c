@@ -4,11 +4,15 @@
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <libdragon.h>
 
+#define DISPLAY_TIMEOUT (1*1000*1000)
 #define get_disp_buffer(x) __safe_buffer[(x)-1]
 
-uint16_t hfx_depth_buffer[320*240] __attribute__((aligned(8)));
+uint16_t hfx_depth_buffer[320*240] __attribute__((aligned(64)));
+
+uint16_t *depth_buffer;
 
 extern void *__safe_buffer[];
 
@@ -17,11 +21,34 @@ void *hfx_display_get_pointer(hfx_state *state)
     return get_disp_buffer(state->display);
 }
 
+void hfx_get_display(hfx_state *state)
+{
+    uint32_t count = 0;
+    do
+    {
+        if(count >= DISPLAY_TIMEOUT)
+        {
+            break;
+        }
+
+        count += 1;
+        state->display = display_lock();
+        hfx_wait_us(1);
+    } while(state->display == 0);
+
+    if(count >= DISPLAY_TIMEOUT)
+    {
+        hfx_fatal_error(state);
+    }
+}
+
 void hfx_cmd_register_display(hfx_state *state)
 {
+    depth_buffer = hfx_depth_buffer;
+
     uint64_t buffer_cmds[2];
     /* Get display handle */
-    while(!(state->display = display_lock()));
+    hfx_get_display(state);
     
     hfx_rb_reserve(state, 2);
     hfx_rb_queue(state, HFX_CMD_SET_DISPLAY);

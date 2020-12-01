@@ -7,13 +7,17 @@
 #include "system.h"
 
 #define RB_SIZE 1024
-#define HFX_DEBUG
+
+#define COUNT_PER_US (COUNTS_PER_SECOND / 1000 / 1000)
+//#define HFX_DEBUG
 
 extern const void _hfx_ucode_data_start;
 extern const void _hfx_ucode_start;
 extern const void _hfx_ucode_end;
 
-static hfx_state state __attribute__((aligned(8)));
+static hfx_state state __attribute__((aligned(64)));
+
+static char pbuf[256];
 
 static int __console_write( char *buf, unsigned int len )
 {
@@ -33,6 +37,11 @@ static stdio_t console_calls = {
     0
 };
 
+void hfx_rsp_int()
+{
+    hfx_fatal_error(&state);
+}
+
 hfx_state *hfx_init()
 {
     state.rb_start = 0;
@@ -48,6 +57,8 @@ hfx_state *hfx_init()
     
     /* Initalize RSP */
     rsp_init();
+    register_SP_handler(hfx_rsp_int);
+    set_SP_interrupt(1);
     
     /* Set RB pointer and size in ucode data */
     uint32_t data_size = (uint32_t) (&_hfx_ucode_start - &_hfx_ucode_data_start);
@@ -97,4 +108,54 @@ void hfx_restart_rsp(hfx_state *state)
 {
     hfx_write_reg(HFX_VADDR_REG_RSP_PC, hfx_read_reg(HFX_VADDR_REG_RSP_PC));
     hfx_write_reg(HFX_VADDR_REG_RSP_STATUS, HFX_RSP_CLEAR_BROKE|HFX_RSP_CLEAR_HALT);
+}
+
+void hfx_wait_us(uint64_t num_us)
+{
+    wait_ticks(num_us*COUNT_PER_US);
+}
+
+void hfx_fatal_error(hfx_state *state)
+{
+    // TODO replace this with proper define
+    uint32_t rdp_status = hfx_read_reg(0x0410000C);
+    uint32_t rsp_fifo_status = hfx_read_reg(HFX_VADDR_REG_STATUS);
+    uint32_t rsp_status = hfx_read_reg(0x04040010);
+
+    uint32_t rdp_start = hfx_read_reg(0x04100000);
+    uint32_t rdp_end = hfx_read_reg(0x04100004);
+    uint32_t rdp_current = hfx_read_reg(0x04100008);
+
+    /* HALT RSP & RDP */
+    // TODO add defines for these registers
+    hfx_write_reg(0x04040010, 0x00000002);
+    hfx_write_reg(0x0410000c, 0x0008);
+
+    graphics_fill_screen(state->display, 0);
+    graphics_draw_text(state->display, 10, 10, "FATAL ERROR!");
+
+    sprintf(pbuf, "RSP STATUS: 0x%lx", rsp_status);
+    graphics_draw_text(state->display, 10, 20, pbuf);
+
+    sprintf(pbuf, "RSP FIFO STATUS: 0x%lx", rsp_fifo_status);
+    graphics_draw_text(state->display, 10, 30, pbuf);
+
+    sprintf(pbuf, "RDP STATUS: 0x%lx", rdp_status);
+    graphics_draw_text(state->display, 10, 40, pbuf);
+
+    sprintf(pbuf, "RSP FIFO\nStart 0x%08lx, end 0x%08lx", hfx_read_reg(HFX_VADDR_REG_RB_START), state->rb_end);
+    graphics_draw_text(state->display, 10, 50, pbuf);
+
+    sprintf(pbuf, "RSP CUR END 0x%lx\n", hfx_read_reg(HFX_VADDR_REG_RB_END));
+    graphics_draw_text(state->display, 10, 70, pbuf);
+
+    sprintf(pbuf, "RDP FIFO\nStart 0x%lx, end 0x%lx, current 0x%lx", rdp_start, rdp_end, rdp_current);
+    graphics_draw_text(state->display, 10, 80, pbuf);
+
+    display_show(state->display);
+
+    while(1)
+    {
+        /* Do nothing */
+    }
 }

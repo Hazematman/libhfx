@@ -2,6 +2,7 @@
 #include <hfx_types.h>
 #include <string.h>
 #include <math.h>
+#include <hfx_int.h>
 
 void hfx_matrix_multiply(hfx_state *state, float *a, float *b, float *result)
 {
@@ -41,10 +42,17 @@ void hfx_normalize(hfx_state *state, float *vector, float *result)
     float temp[4];
     float mag = sqrtf(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2] + vector[3]*vector[3]);
 
-    temp[0] = vector[0]/mag;
-    temp[1] = vector[1]/mag;
-    temp[2] = vector[2]/mag;
-    temp[3] = vector[3]/mag;
+    if(mag == 0)
+    {
+        hfx_fatal_error(state);
+    }
+    else
+    {
+        temp[0] = vector[0]/mag;
+        temp[1] = vector[1]/mag;
+        temp[2] = vector[2]/mag;
+        temp[3] = vector[3]/mag;
+    }
     
     memcpy(result, temp, sizeof(temp));
 }

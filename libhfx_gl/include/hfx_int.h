@@ -1,0 +1,1 @@
+#define hfx_fatal_error(state)

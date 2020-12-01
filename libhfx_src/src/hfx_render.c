@@ -6,6 +6,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#define MIN_FLOAT 0.0625f
+
 void hfx_render_init(hfx_state *state)
 {
     uint64_t cmds[] = 
@@ -72,9 +74,16 @@ void barycentric(float px, float py, float x1, float y1, float x2, float y2, flo
     float d20 = v2x*v0x + v2y * v0y;
     float d21 = v2x*v1x + v2y * v1y;
     float denom = d00 * d11 - d01 * d01;
-    *v = (d11 * d20 - d01 * d21) / denom;
-    *w = (d00 * d21 - d01 * d20) / denom;
+    *v = (fabs(denom) < MIN_FLOAT) ? 0.0f : ((d11 * d20 - d01 * d21) / denom);
+    *w = (fabs(denom) < MIN_FLOAT) ? 0.0f : ((d00 * d21 - d01 * d20) / denom);
     *u = 1.0f - *v - *w;
+}
+
+static char pbuf[256];
+
+uint32_t f_to_u(float a)
+{
+    return *(uint32_t*)&a;
 }
 
 void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)
@@ -91,6 +100,25 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float x3 = v3[0], y3 = v3[1], z3 = v3[2];
 
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
+
+#if 0
+    display_show(state->display);
+    hfx_get_display(state);
+    graphics_fill_screen(state->display, 0);
+
+    sprintf(pbuf, "%f %f %f\n%f %f %f\n%f %f %f",
+                   x1, y1, z1,
+                   x2, y2, z2,
+                   x3, y3, z3);
+    graphics_draw_text(state->display, 10, 110, pbuf);
+
+    sprintf(pbuf, "%f %f\n%f %f\n%f %f\n%f %f\n%f %f\n%f %f",
+                   c1[0], c1[1], c1[2], c1[3],
+                   c2[0], c2[1], c2[2], c2[3],
+                   c3[0], c3[1], c3[2], c3[3]);
+    graphics_draw_text(state->display, 10, 160, pbuf);
+    display_show(state->display);
+#endif
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
     if( y1 > y2 ) 
@@ -118,21 +146,15 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         c2 = c1; c1 = temp_c;
     }
 
-#if 0
-    printf("Drawing %f %f %f\n%f %f %f\n%f %f %f\n",
-                    x1, y1, z1,
-                    x2, y2, z2,
-                    x3, y3, z3);
-#endif
-
     /* calculate Y edge coefficients in 11.2 fixed format */
     uint32_t yh = y1 * to_fixed_11_2;
     uint32_t ym = y2 * to_fixed_11_2;
     uint32_t yl = y3 * to_fixed_11_2;
     
-    float dxhdy_f = ( y3 == y1 ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) );
-    float dxmdy_f = ( y2 == y1 ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) );
-    float dxldy_f = ( y3 == y2 ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) );
+    float dxhdy_f = ( fabs(y3-y1) < MIN_FLOAT ) ? 0 : ( ( x3 - x1 ) / ( y3 - y1 ) );
+    float dxmdy_f = ( fabs(y2-y1) < MIN_FLOAT ) ? 0 : ( ( x2 - x1 ) / ( y2 - y1 ) );
+    float dxldy_f = ( fabs(y3-y2) < MIN_FLOAT ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) );
+
     /* calculate inverse slopes in 16.16 fixed format */
     uint32_t dxhdy = dxhdy_f * to_fixed_16_16;
     uint32_t dxmdy = dxmdy_f * to_fixed_16_16;
@@ -169,9 +191,9 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t dzdx;
     uint32_t dzdy;
 
-    float inv_z1 = 1.0f / z1;
-    float inv_z2 = 1.0f / z2;
-    float inv_z3 = 1.0f / z3;
+    float inv_z1 = (fabs(z1) < MIN_FLOAT) ? 65532.0f : (1.0f / z1);
+    float inv_z2 = (fabs(z2) < MIN_FLOAT) ? 65532.0f : (1.0f / z2);
+    float inv_z3 = (fabs(z3) < MIN_FLOAT) ? 65532.0f : (1.0f / z3);
 
     uint32_t iz1 = ((uint32_t)(inv_z1 * to_fixed_16_16) << 12);
     
@@ -202,8 +224,6 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         dzdy = ((uint32_t)(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_16_16) << 12);
         dzde = ((uint32_t)(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_16_16) << 12);
     }
-
-
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
                               HFX_RDP_CMD_TRI_SHADE_DEPTH,
