@@ -23,6 +23,7 @@ void *hfx_display_get_pointer(hfx_state *state)
 
 void hfx_get_display(hfx_state *state)
 {
+    state->last_display = state->display;
     uint32_t count = 0;
     do
     {

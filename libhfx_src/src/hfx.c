@@ -131,29 +131,27 @@ void hfx_fatal_error(hfx_state *state)
     hfx_write_reg(0x04040010, 0x00000002);
     hfx_write_reg(0x0410000c, 0x0008);
 
-    graphics_fill_screen(state->display, 0);
-    graphics_draw_text(state->display, 10, 10, "FATAL ERROR!");
+    graphics_fill_screen(state->last_display, 0);
+    graphics_draw_text(state->last_display, 10, 10, "FATAL ERROR!");
 
     sprintf(pbuf, "RSP STATUS: 0x%lx", rsp_status);
-    graphics_draw_text(state->display, 10, 20, pbuf);
+    graphics_draw_text(state->last_display, 10, 20, pbuf);
 
     sprintf(pbuf, "RSP FIFO STATUS: 0x%lx", rsp_fifo_status);
-    graphics_draw_text(state->display, 10, 30, pbuf);
+    graphics_draw_text(state->last_display, 10, 30, pbuf);
 
     sprintf(pbuf, "RDP STATUS: 0x%lx", rdp_status);
-    graphics_draw_text(state->display, 10, 40, pbuf);
+    graphics_draw_text(state->last_display, 10, 40, pbuf);
 
     sprintf(pbuf, "RSP FIFO\nStart 0x%08lx, end 0x%08lx", hfx_read_reg(HFX_VADDR_REG_RB_START), state->rb_end);
-    graphics_draw_text(state->display, 10, 50, pbuf);
+    graphics_draw_text(state->last_display, 10, 50, pbuf);
 
     sprintf(pbuf, "RSP CUR END 0x%lx\n", hfx_read_reg(HFX_VADDR_REG_RB_END));
-    graphics_draw_text(state->display, 10, 70, pbuf);
+    graphics_draw_text(state->last_display, 10, 70, pbuf);
 
     sprintf(pbuf, "RDP FIFO\nStart 0x%lx, end 0x%lx, current 0x%lx", rdp_start, rdp_end, rdp_current);
-    graphics_draw_text(state->display, 10, 80, pbuf);
-
-    display_show(state->display);
-
+    graphics_draw_text(state->last_display, 10, 80, pbuf);
+    
     while(1)
     {
         /* Do nothing */

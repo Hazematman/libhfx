@@ -19,6 +19,7 @@ typedef struct hfx_state {
     uint32_t rb_size;
     uint32_t rb_size_mask;
     display_context_t display;
+    display_context_t last_display;
 
     hfx_color clear_color;
     hfx_color vertex_color;
