@@ -214,6 +214,8 @@ int main(void)
             {
                 angle += 1.0f;
             }
+
+            //angle = 285.0f;
             
             done = 1;
             count = 0;

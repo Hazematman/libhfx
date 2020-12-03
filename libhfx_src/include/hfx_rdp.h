@@ -85,11 +85,11 @@
 #define     HFX_RDP_CMD_TRI_LEVEL_SHIFT             51ull
 #define     HFX_RDP_CMD_TRI_TILE_MASK               0x7ull
 #define     HFX_RPD_CMD_TRI_TILE_SHIFT              48ull
-#define     HFX_RDP_CMD_TRI_YL_MASK                 0x3fffull
+#define     HFX_RDP_CMD_TRI_YL_MASK                 0x7fffull
 #define     HFX_RDP_CMD_TRI_YL_SHIFT                32ull
-#define     HFX_RDP_CMD_TRI_YM_MASK                 0x3fffull
+#define     HFX_RDP_CMD_TRI_YM_MASK                 0x7fffull
 #define     HFX_RDP_CMD_TRI_YM_SHIFT                16ull
-#define     HFX_RDP_CMD_TRI_YH_MASK                 0x3fffull
+#define     HFX_RDP_CMD_TRI_YH_MASK                 0x7fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
 #define HFX_RDP_CMD_TRI_SHADE                       0x0cull
 #define HFX_RDP_CMD_TRI_SHADE_DEPTH                 0x0dull

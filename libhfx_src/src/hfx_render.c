@@ -6,7 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define MIN_FLOAT 0.0625f
+#define MIN_FLOAT 0.0001f
 
 void hfx_render_init(hfx_state *state)
 {
@@ -79,8 +79,6 @@ void barycentric(float px, float py, float x1, float y1, float x2, float y2, flo
     *u = 1.0f - *v - *w;
 }
 
-static char pbuf[256];
-
 uint32_t f_to_u(float a)
 {
     return *(uint32_t*)&a;
@@ -100,25 +98,6 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float x3 = v3[0], y3 = v3[1], z3 = v3[2];
 
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
-
-#if 0
-    display_show(state->display);
-    hfx_get_display(state);
-    graphics_fill_screen(state->display, 0);
-
-    sprintf(pbuf, "%f %f %f\n%f %f %f\n%f %f %f",
-                   x1, y1, z1,
-                   x2, y2, z2,
-                   x3, y3, z3);
-    graphics_draw_text(state->display, 10, 110, pbuf);
-
-    sprintf(pbuf, "%f %f\n%f %f\n%f %f\n%f %f\n%f %f\n%f %f",
-                   c1[0], c1[1], c1[2], c1[3],
-                   c2[0], c2[1], c2[2], c2[3],
-                   c3[0], c3[1], c3[2], c3[3]);
-    graphics_draw_text(state->display, 10, 160, pbuf);
-    display_show(state->display);
-#endif
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
     if( y1 > y2 ) 
@@ -146,6 +125,13 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         c2 = c1; c1 = temp_c;
     }
 
+    x1 = floorf(x1) + fmodf(x1, 1.0f/4.0f);
+    x2 = floorf(x2) + fmodf(x2, 1.0f/4.0f);
+    x3 = floorf(x3) + fmodf(x3, 1.0f/4.0f);
+    y1 = floorf(y1) + fmodf(y1, 1.0f/4.0f);
+    y2 = floorf(y2) + fmodf(y2, 1.0f/4.0f);
+    y3 = floorf(y3) + fmodf(y3, 1.0f/4.0f);
+
     /* calculate Y edge coefficients in 11.2 fixed format */
     uint32_t yh = y1 * to_fixed_11_2;
     uint32_t ym = y2 * to_fixed_11_2;
@@ -167,7 +153,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
 
     /* determine the winding of the triangle */
     int32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
-    uint32_t flip = (winding > 0 ? 1 : 0 ); 
+    uint32_t flip = (winding > 0 ? 1 : 0 );
 
     uint32_t r = c1[0]*to_fixed_16_16;
     uint32_t g = c1[1]*to_fixed_16_16;

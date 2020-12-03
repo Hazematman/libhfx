@@ -9,7 +9,7 @@
 #define RB_SIZE 1024
 
 #define COUNT_PER_US (COUNTS_PER_SECOND / 1000 / 1000)
-//#define HFX_DEBUG
+#define HFX_DEBUG
 
 extern const void _hfx_ucode_data_start;
 extern const void _hfx_ucode_start;
@@ -151,7 +151,7 @@ void hfx_fatal_error(hfx_state *state)
 
     sprintf(pbuf, "RDP FIFO\nStart 0x%lx, end 0x%lx, current 0x%lx", rdp_start, rdp_end, rdp_current);
     graphics_draw_text(state->last_display, 10, 80, pbuf);
-    
+
     while(1)
     {
         /* Do nothing */
