@@ -79,11 +79,6 @@ void barycentric(float px, float py, float x1, float y1, float x2, float y2, flo
     *u = 1.0f - *v - *w;
 }
 
-uint32_t f_to_u(float a)
-{
-    return *(uint32_t*)&a;
-}
-
 void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
