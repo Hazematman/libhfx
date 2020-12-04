@@ -15,15 +15,25 @@ void hfx_init_caps(hfx_state *state)
 
 void hfx_enable(hfx_state *state, uint32_t cap)
 {
+    bool *value = NULL;
     switch(cap)
     {
         case HFX_DEPTH_TEST:
-            state->caps.depth_test = true;
+            value = &state->caps.depth_test;
+            break;
         case HFX_VERTEX_ARRAY:
-            state->caps.vertex_array = true;
+            value = &state->caps.vertex_array;
+            break;
         case HFX_COLOR_ARRAY:
-            state->caps.color_array = true;
+            value = &state->caps.color_array;
+            break;
         default:
             break;
+    }
+
+    if(value != NULL && *value != true)
+    {
+        *value = true;
+        state->caps.dirty = true;
     }
 }

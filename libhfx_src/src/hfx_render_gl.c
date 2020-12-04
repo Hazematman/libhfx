@@ -85,6 +85,9 @@ void hfx_set_mode(hfx_state *state)
         cmds[0] = HFX_RDP_PKT_SET_MODE(mode);
         cmds[1] = HFX_RDP_PKT_SET_COMBINE_MODE(combine_mode);
         hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+
+        state->caps.dirty = false;
+        state->rdp_mode = mode;
     }
 }
 
@@ -135,7 +138,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
     uint32_t index = 0;
-    uint64_t cmds[1+6+4];
+    uint64_t cmds[1+6+4+1];
 
     cmds[index++] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM |
                                    HFX_RDP_CMD_SET_MODE_FILL |
@@ -159,7 +162,9 @@ void hfx_clear(hfx_state *state, uint32_t bits)
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
         cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
-    }   
+    }
+    
+    cmds[index++] = HFX_RDP_PKT_SET_MODE(state->rdp_mode);
 
     hfx_cmd_rdp(state, index, cmds);
 }

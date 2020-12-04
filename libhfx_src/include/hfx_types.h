@@ -30,6 +30,8 @@ typedef struct hfx_state {
         bool dirty;
     } caps;
 
+    uint32_t rdp_mode;
+
     hfx_color clear_color;
     hfx_color vertex_color;
 
