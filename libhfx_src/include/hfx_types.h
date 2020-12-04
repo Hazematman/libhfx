@@ -2,6 +2,7 @@
 #define HFX_TYPES_H
 #include <libdragon.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define HFX_RB_SIZE 1024
 
@@ -20,6 +21,14 @@ typedef struct hfx_state {
     uint32_t rb_size_mask;
     display_context_t display;
     display_context_t last_display;
+
+    struct
+    {
+        bool depth_test;
+        bool vertex_array;
+        bool color_array;
+        bool dirty;
+    } caps;
 
     hfx_color clear_color;
     hfx_color vertex_color;

@@ -177,11 +177,9 @@ int main(void)
 
     hfx_clear_color_f(state, 0.3f, 0.1f, 0.9f, 1.0f);
 
-#if 0
-    hfxEnable(state, HFX_DEPTH_TEST);
-    hfxEnable(state, HFX_VERTEX_ARRAY);
-    hfxEnable(state, HFX_COLOR_ARRAY);
-#endif
+    hfx_enable(state, HFX_DEPTH_TEST);
+    hfx_enable(state, HFX_VERTEX_ARRAY);
+    hfx_enable(state, HFX_COLOR_ARRAY);
 
     hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, cube_verts);
     hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, cube_colors);

@@ -1,7 +1,6 @@
 #ifndef HFX_RDP_H
 #define HFX_RDP_H
 
-
 #define HFX_RDP_CMD_SHIFT           56ull
 #define HFX_RDP_CMD_MASK            (0x3f << HFX_RDP_CMD_SHIFT)
 #define HFX_RDP_CMD_SET_COLOR_IMAGE 0x3full
@@ -158,5 +157,8 @@
 #define HFX_RDP_PKT_TRI_DEPTH(buffer, inv_z, dzdx, dzdy, dzde) \
             (buffer)[buffer_index++] = ((uint64_t)(inv_z) << 32) | ((uint64_t)(dzdx)); \
             (buffer)[buffer_index++] = ((uint64_t)(dzde) << 32) | ((uint64_t)(dzdy));
+
+#define HFX_MAX_DEPTH_VALUE 0x3fff
+#define HFX_PACK_Z_VALUE(z, dz) (((z)<<2)|(dz))
 
 #endif

@@ -38,33 +38,63 @@ void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t 
     state->color_size = size;
 }
 
+void hfx_set_mode(hfx_state *state)
+{
+    bool is_two_cycle = true; // TODO figure out when we need two cycle
+    uint64_t mode = 0;
+    uint64_t combine_mode = 0;
+    uint64_t cmds[2];
+
+    /* Only update the mode if we need to */
+    if(state->caps.dirty)
+    {
+        if(state->caps.depth_test)
+        {
+            mode |= HFX_RDP_CMD_SET_MODE_Z_UPDATE_ENABLE | 
+                    HFX_RDP_CMD_SET_MODE_Z_COMPARE_ENABLE |
+                    HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PIXEL;
+        }
+
+        if(is_two_cycle)
+        {
+            mode |= HFX_RDP_CMD_SET_MODE_TWO_CYCLE;
+        }
+        else
+        {
+            mode |= HFX_RDP_CMD_SET_MODE_ONE_CYCLE;
+        }
+
+        // TODO set the rest of this state based on the graphics state
+        mode |= HFX_RDP_CMD_SET_BLEND_MODE(1B_0, 0) |
+                HFX_RDP_CMD_SET_BLEND_MODE(1A_0, 0) |
+                HFX_RDP_CMD_SET_BLEND_MODE(2A_0, 0) |
+                HFX_RDP_CMD_SET_BLEND_MODE(2B_0, 0) |
+                HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER  |
+                HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER |
+                HFX_RDP_CMD_SET_MODE_DEPTH_MODE_OPAQUE |
+                HFX_RDP_CMD_SET_MODE_ALPHA_CVG_SELECT |
+                HFX_RDP_CMD_SET_MODE_CVG_DEST_FULL;
+
+        combine_mode |= (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_0_SHIFT) |
+                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_0_SHIFT) |
+                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT) |
+                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT);
+
+
+        /* Send commands to the RDP */
+        cmds[0] = HFX_RDP_PKT_SET_MODE(mode);
+        cmds[1] = HFX_RDP_PKT_SET_COMBINE_MODE(combine_mode);
+        hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+    }
+}
+
 void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t count)
 {
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4];
-    uint64_t cmds[2];
 
-    cmds[0] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_TWO_CYCLE |
-                                   HFX_RDP_CMD_SET_BLEND_MODE(1B_0, 0) |
-                                   HFX_RDP_CMD_SET_BLEND_MODE(1A_0, 0) |
-                                   HFX_RDP_CMD_SET_BLEND_MODE(2A_0, 0) |
-                                   HFX_RDP_CMD_SET_BLEND_MODE(2B_0, 0) |
-                                   HFX_RDP_CMD_SET_MODE_RGB_NO_DITHER  |
-                                   HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER |
-                                   HFX_RDP_CMD_SET_MODE_DEPTH_MODE_OPAQUE |
-                                   HFX_RDP_CMD_SET_MODE_ALPHA_CVG_SELECT |
-                                   HFX_RDP_CMD_SET_MODE_CVG_DEST_FULL |
-                                   HFX_RDP_CMD_SET_MODE_Z_UPDATE_ENABLE |
-                                   HFX_RDP_CMD_SET_MODE_Z_COMPARE_ENABLE |
-                                   HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PIXEL);
-
-    cmds[1] = HFX_RDP_PKT_SET_COMBINE_MODE((4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_0_SHIFT) |
-                                           (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_0_SHIFT) |
-                                           (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT) |
-                                           (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT));
-
-    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+    hfx_set_mode(state);
 
     for(int i = start_tri; i < num_tri; i++)
     {
@@ -102,9 +132,6 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     }
 }
 
-#define	G_MAXFBZ		0x3fff
-#define	GPACK_ZDZ(z, dz)		((z) << 2 | (dz))
-
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
     uint32_t index = 0;
@@ -116,7 +143,7 @@ void hfx_clear(hfx_state *state, uint32_t bits)
                                    HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER);
     if(bits & HFX_DEPTH_BUFFER_BIT)
     {
-        uint32_t packed_color = (GPACK_ZDZ(G_MAXFBZ,0)<<16 | GPACK_ZDZ(G_MAXFBZ,0));
+        uint32_t packed_color = (HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0)<<16 | HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0));
         cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_depth_buffer);
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
