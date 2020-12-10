@@ -162,15 +162,11 @@ int main(void)
 
     float angle = 0;
     uint32_t count = 0;
-    int tri = 2;
     while(1)
     {
         if(angle == 360)
         {
             angle = 0;
-            tri += 1;
-            if(tri >= 12)
-                tri = 0;
         }
         else
         {
