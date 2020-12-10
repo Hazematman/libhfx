@@ -63,6 +63,9 @@ void hfx_cmd_register_display(hfx_state *state)
 
 void hfx_swap_buffers(hfx_state *state)
 {
+    // TODO if we want to support triple buffering
+    // we wouldn't wait for idle here
+    hfx_wait_for_idle(state);
     display_show(state->display);
     hfx_cmd_register_display(state); 
 }

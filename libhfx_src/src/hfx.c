@@ -4,9 +4,13 @@
 #include <hfx_rb.h>
 #include <libdragon.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include "hfx_rdp.h"
 #include "system.h"
 
 #define RB_SIZE 1024
+
+#define RDP_TIMEOUT (1*1000*1000)
 
 #define COUNT_PER_US (COUNTS_PER_SECOND / 1000 / 1000)
 #define HFX_DEBUG
@@ -18,6 +22,8 @@ extern const void _hfx_ucode_end;
 static hfx_state state __attribute__((aligned(64)));
 
 static char pbuf[256];
+
+static volatile bool done;
 
 static int __console_write( char *buf, unsigned int len )
 {
@@ -36,6 +42,11 @@ static stdio_t console_calls = {
     __console_write,
     0
 };
+
+void hfx_rdp_int()
+{
+    done = true;
+}
 
 void hfx_rsp_int()
 {
@@ -63,6 +74,10 @@ hfx_state *hfx_init()
     rsp_init();
     register_SP_handler(hfx_rsp_int);
     set_SP_interrupt(1);
+
+    /* Setup RDP interrupt for library */
+    register_DP_handler(hfx_rdp_int);
+    set_DP_interrupt(1);
     
     /* Set RB pointer and size in ucode data */
     uint32_t data_size = (uint32_t) (&_hfx_ucode_start - &_hfx_ucode_data_start);
@@ -117,6 +132,26 @@ void hfx_restart_rsp(hfx_state *state)
 void hfx_wait_us(uint64_t num_us)
 {
     wait_ticks(num_us*COUNT_PER_US);
+}
+
+void hfx_wait_for_idle(hfx_state *state)
+{
+    uint64_t cmds[1];
+    done = false;
+    cmds[0] = HFX_RDP_PKT_SYNC_FULL;
+    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+    hfx_rb_submit(state);
+
+    uint32_t count = 0;
+    while(done != true)
+    {
+        count += 1;
+        if(count > RDP_TIMEOUT)
+        {
+            hfx_fatal_error(state);
+        }
+        hfx_wait_us(1);
+    }
 }
 
 void hfx_fatal_error(hfx_state *state)

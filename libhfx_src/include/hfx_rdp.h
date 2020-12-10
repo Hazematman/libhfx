@@ -111,6 +111,7 @@
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_B_1_SHIFT    3ull
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT    0ull
 #define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
+#define HFX_RDP_CMD_SYNC_FULL                       0x29ull
 
 
 #define HFX_RDP_CMD_SET_BLEND_MODE(type, value) (((value)&HFX_RDP_CMD_SET_MODE_BLEND_MODE_MASK)<<HFX_RDP_CMD_SET_MODE_BLEND_MODE_##type##_SHIFT)
@@ -120,6 +121,7 @@
 #define HFX_RDP_PKT_SET_COLOR_IMAGE(format, size, width, addr) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_COLOR_IMAGE) | ((uint64_t)(format) << 53) | ((uint64_t)(size) << 51) | (((uint64_t)(width-1)&0x3FF)<<32)  | (uintptr_t)(addr))
 #define HFX_RDP_PKT_SET_Z_IMAGE(z_image) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_Z_IMAGE) | (uintptr_t)(z_image))
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
+#define HFX_RDP_PKT_SYNC_FULL (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_FULL))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
 #define HFX_RDP_PKT_FILL_RECT(xl, yl, xh, yh) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_FILL_RECT) | \
                                               (((xl)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XL_SHIFT) | \

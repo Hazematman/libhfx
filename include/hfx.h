@@ -27,6 +27,7 @@ typedef int32_t HFXfixed;
 hfx_state *hfx_init();
 void hfx_register_rsp_int(hfx_state *state, void *func_ptr);
 void hfx_restart_rsp(hfx_state *state);
+void hfx_wait_for_idle(hfx_state *state);
 
 void hfx_swap_buffers(hfx_state *state);
 
@@ -37,6 +38,7 @@ HFXfixed hfx_divx(HFXfixed a, HFXfixed b);
 
 
 void hfxEnable(hfx_state *state, uint32_t cap);
+void hfx_enable(hfx_state *state, uint32_t cap);
 void hfxClearColor(hfx_state *state, float r, float g, float b, float a);
 void hfxClear(hfx_state *state, uint32_t bits);
 void hfxVertexPointer(hfx_state *state, int32_t size, uint32_t type, uint32_t stride, void *pointer);

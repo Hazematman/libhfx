@@ -25,18 +25,6 @@ static uint64_t cmds1[] =
     0xED000000005003C0ULL,
 };
 
-/* This triggers a full sync to happen */
-/* eventually this should all be moved into the swap buffers command */
-static uint64_t cmds[] =
-{
-    0xE900000000000000ULL,
-};
-
-static void hfx_int()
-{
-    done = 0;
-}
-
 float cube_verts[] = 
 {
     // Top
@@ -164,14 +152,9 @@ int main(void)
 
     /* Initialize peripherals */
     display_init( res, bit, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE );
-
     register_exception_handler(exception);
 
-    register_DP_handler(hfx_int);
-    set_DP_interrupt(1);
-
     state = hfx_init();
-    hfx_register_rsp_int(state, hfx_int); 
 
     hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
 
@@ -185,8 +168,6 @@ int main(void)
     hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, cube_colors);
 
     hfx_clear(state, HFX_COLOR_BUFFER_BIT | HFX_DEPTH_BUFFER_BIT);
-    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
-    hfx_rb_submit(state);
 
 
     float angle = 0;
@@ -194,49 +175,35 @@ int main(void)
     int tri = 2;
     while(1)
     {
-        if(count > 1*1000*1000)
+        if(angle == 360)
         {
-            hfx_fatal_error(state);
+            angle = 0;
+            tri += 1;
+            if(tri >= 12)
+                tri = 0;
+        }
+        else
+        {
+            angle += 1.0f;
         }
 
-        if(done == 0)
-        {
-            if(angle == 360)
-            {
-                angle = 0;
-                tri += 1;
-                if(tri >= 12)
-                    tri = 0;
-            }
-            else
-            {
-                angle += 1.0f;
-            }
+        //angle = 285.0f;
 
-            //angle = 285.0f;
-            
-            done = 1;
-            count = 0;
+        // Queue the next frame up
+        hfx_clear(state, HFX_COLOR_BUFFER_BIT | HFX_DEPTH_BUFFER_BIT);
+        hfx_load_identity(state);
+        hfx_scale_f(state, 320.0f/2.0f, 240.0f/2.0f, 1.0f/2.0f);
+        hfx_translate_f(state, 1.0f, 1.0f, 1.0f);
+        //hfx_translate_f(state, 0.0f, 0.0f, 0.5f);
+        hfx_rotate_f(state, angle, 0.58f, 0.58f, 0.58f);
+        hfx_scale_f(state, 0.5f, 0.5f, 0.5f);
+        hfx_draw_arrays(state, HFX_TRIANGLES, 0, 36);
 
-            sprintf(pbuf, "Done %f", angle);
-            graphics_draw_text(state->display, 0, 100, pbuf);
+        hfx_wait_for_idle(state);
 
-            hfx_swap_buffers(state);
+        sprintf(pbuf, "Done %f", angle);
+        graphics_draw_text(state->display, 0, 100, pbuf);
 
-            // Queue the next frame up
-            hfx_clear(state, HFX_COLOR_BUFFER_BIT | HFX_DEPTH_BUFFER_BIT);
-            hfx_load_identity(state);
-            hfx_scale_f(state, 320.0f/2.0f, 240.0f/2.0f, 1.0f/2.0f);
-            hfx_translate_f(state, 1.0f, 1.0f, 1.0f);
-            //hfx_translate_f(state, 0.0f, 0.0f, 0.5f);
-            hfx_rotate_f(state, angle, 0.58f, 0.58f, 0.58f);
-            hfx_scale_f(state, 0.5f, 0.5f, 0.5f);
-            hfx_draw_arrays(state, HFX_TRIANGLES, 0, 36);
-            hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
-            hfx_rb_submit(state);
-        }
-
-        count += 1;
-        hfx_wait_us(1);
+        hfx_swap_buffers(state);
     }
 }
