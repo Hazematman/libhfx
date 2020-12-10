@@ -65,6 +65,7 @@ hfx_state *hfx_init()
     /* Initalize capabilties */
     hfx_init_caps(&state);
     hfx_set_mode(&state);
+    hfx_set_scissor(&state, 0, 0, 320<<2, 240<<2);
 
     /* For now hardcode display dimensions to 320x240 */
     state.display_dim.width = 320;

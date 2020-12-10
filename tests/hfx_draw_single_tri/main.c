@@ -30,15 +30,6 @@ uint8_t vc1[] =
     0.0f, 0.0f, 255.0f, 255.0f,
 };
 
-
-/* This command sets the clip area */
-/* Should not be required, internal library code should */
-/* Handle this on init */
-static uint64_t cmds1[] =
-{
-    0xED000000005003C0ULL,
-};
-
 int main(void)
 {
     /* enable interrupts (on the CPU) */
@@ -52,9 +43,6 @@ int main(void)
     hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, v1);
     hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, vc1);    
 
-    // TODO this rdp command is only here to set the default clip
-    // Should really be part of the hfx library
-    hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
     hfx_load_identity(state);
     //hfx_rotate_f(state, 50, 0, 0, 1);
     hfx_translate_f(state, 50.0f, 50.0f, 0.0f);

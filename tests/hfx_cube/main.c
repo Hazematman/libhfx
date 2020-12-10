@@ -17,14 +17,6 @@ static hfx_state *state;
 
 static char pbuf[256];
 
-/* This command sets the clip area */
-/* Should not be required, internal library code should */
-/* Handle this on init */
-static uint64_t cmds1[] =
-{
-    0xED000000005003C0ULL,
-};
-
 float cube_verts[] = 
 {
     // Top
@@ -155,8 +147,6 @@ int main(void)
     register_exception_handler(exception);
 
     state = hfx_init();
-
-    hfx_cmd_rdp(state, sizeof(cmds1)/sizeof(uint64_t), cmds1);
 
     hfx_clear_color_f(state, 0.3f, 0.1f, 0.9f, 1.0f);
 

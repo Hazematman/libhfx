@@ -49,6 +49,7 @@ void hfxRotatef(hfx_state *state, float angle, float x, float y, float z);
 void hfxScalef(hfx_state *state, float x, float y, float z);
 void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count);
 
+void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, uint32_t yl);
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3);
 void hfx_color_f(hfx_state *state, float r, float g, float b, float a);
 void hfx_clear_color_f(hfx_state *state, float r, float g, float b, float a);

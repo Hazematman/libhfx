@@ -1,6 +1,8 @@
 #ifndef HFX_RDP_H
 #define HFX_RDP_H
 
+#define HFX_RDP_10_2_MASK           0x1FFFull
+
 #define HFX_RDP_CMD_SHIFT           56ull
 #define HFX_RDP_CMD_MASK            (0x3f << HFX_RDP_CMD_SHIFT)
 #define HFX_RDP_CMD_SET_COLOR_IMAGE 0x3full
@@ -110,6 +112,13 @@
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT      6ull
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_B_1_SHIFT    3ull
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT    0ull
+#define HFX_RDP_CMD_SET_SCISSOR                     0x2dull
+#define     HFX_RDP_CMD_SET_SCISSOR_XH_SHIFT        44ull
+#define     HFX_RDP_CMD_SET_SCISSOR_YH_SHIFT        32ull
+#define     HFX_RDP_CMD_SET_SCISSOR_F_SHIFT         25ull
+#define     HFX_RDP_CMD_SET_SCISSOR_O_SHIFT         24ull
+#define     HFX_RDP_CMD_SET_SCISSOR_XL_SHIFT        12ull
+#define     HFX_RDP_CMD_SET_SCISSOR_YL_SHIFT        0ull
 #define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
 #define HFX_RDP_CMD_SYNC_FULL                       0x29ull
 
@@ -122,6 +131,13 @@
 #define HFX_RDP_PKT_SET_Z_IMAGE(z_image) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_Z_IMAGE) | (uintptr_t)(z_image))
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SYNC_FULL (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_FULL))
+#define HFX_RDP_PKT_SET_SCISSOR(xh,yh,f,o,xl,yl) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_SCISSOR) | \
+                                                  (((xh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XH_SHIFT) | \
+                                                  (((yh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YH_SHIFT) | \
+                                                  (((f)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_F_SHIFT) | \
+                                                  (((o)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_O_SHIFT) | \
+                                                  (((xl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XL_SHIFT) | \
+                                                  (((yl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YL_SHIFT))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
 #define HFX_RDP_PKT_FILL_RECT(xl, yl, xh, yh) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_FILL_RECT) | \
                                               (((xl)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XL_SHIFT) | \

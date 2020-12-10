@@ -38,6 +38,14 @@ void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t 
     state->color_size = size;
 }
 
+void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, uint32_t yl)
+{
+    uint64_t cmds[1];
+
+    cmds[0] = HFX_RDP_PKT_SET_SCISSOR(xh, yh, 0, 0, xl, yl);
+    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+}
+
 void hfx_set_mode(hfx_state *state)
 {
     bool is_two_cycle = true; // TODO figure out when we need two cycle
