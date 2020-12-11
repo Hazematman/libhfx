@@ -119,6 +119,31 @@
 #define     HFX_RDP_CMD_SET_SCISSOR_O_SHIFT         24ull
 #define     HFX_RDP_CMD_SET_SCISSOR_XL_SHIFT        12ull
 #define     HFX_RDP_CMD_SET_SCISSOR_YL_SHIFT        0ull
+#define HFX_RDP_CMD_SET_TEXTURE_IMAGE               0x3dull
+#define     HFX_RDP_CMD_SET_TEXTURE_IMAGE_FORMAT_SHIFT  53ull
+#define     HFX_RDP_CMD_SET_TEXTURE_IMAGE_SIZE_SHIFT    51ull
+#define     HFX_RDP_CMD_SET_TEXTURE_IMAGE_WIDTH_SHIFT   32ull
+#define HFX_RDP_CMD_SET_TILE                        0x35ull
+#define     HFX_RDP_CMD_SET_TILE_FORMAT_SHIFT       53ull
+#define     HFX_RDP_CMD_SET_TILE_SIZE_SHIFT         51ull
+#define     HFX_RDP_CMD_SET_TILE_LINE_SHIFT         41ull
+#define     HFX_RDP_CMD_SET_TILE_TMEM_ADDR_SHIFT    32ull
+#define     HFX_RDP_CMD_SET_TILE_TILE_SHIFT         24ull
+#define     HFX_RDP_CMD_SET_TILE_PAL_SHIFT          20ull
+#define     HFX_RDP_CMD_SET_TILE_CT_SHIFT           19ull
+#define     HFX_RDP_CMD_SET_TILE_MT_SHIFT           18ull
+#define     HFX_RDP_CMD_SET_TILE_MASK_T_SHIFT       14ull
+#define     HFX_RDP_CMD_SET_TILE_SHIFT_T_SHIFT      10ull
+#define     HFX_RDP_CMD_SET_TILE_CS_SHIFT           9ull
+#define     HFX_RDP_CMD_SET_TILE_MS_SHIFT           8ull
+#define     HFX_RDP_CMD_SET_TILE_MASK_S_SHIFT       4ull
+#define     HFX_RDP_CMD_SET_TILE_SHIFT_S_SHIFT      0ull
+#define HFX_RDP_CMD_LOAD_TILE                       0x34ull
+#define     HFX_RDP_CMD_LOAD_TILE_SL_SHIFT          44ull
+#define     HFX_RDP_CMD_LOAD_TILE_TL_SHIFT          32ull
+#define     HFX_RDP_CMD_LOAD_TILE_TILE_SHIFT        24ull
+#define     HFX_RDP_CMD_LOAD_TILE_SH_SHIFT          12ull
+#define     HFX_RDP_CMD_LOAD_TILE_TH_SHIFT          0ull
 #define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
 #define HFX_RDP_CMD_SYNC_FULL                       0x29ull
 
@@ -132,12 +157,38 @@
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SYNC_FULL (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_FULL))
 #define HFX_RDP_PKT_SET_SCISSOR(xh,yh,f,o,xl,yl) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_SCISSOR) | \
-                                                  (((xh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XH_SHIFT) | \
-                                                  (((yh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YH_SHIFT) | \
-                                                  (((f)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_F_SHIFT) | \
-                                                  (((o)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_O_SHIFT) | \
-                                                  (((xl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XL_SHIFT) | \
-                                                  (((yl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YL_SHIFT))
+                                                  (((uint64_t)(xh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XH_SHIFT) | \
+                                                  (((uint64_t)(yh)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YH_SHIFT) | \
+                                                  (((uint64_t)(f)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_F_SHIFT) | \
+                                                  (((uint64_t)(o)&1ull)<<HFX_RDP_CMD_SET_SCISSOR_O_SHIFT) | \
+                                                  (((uint64_t)(xl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_XL_SHIFT) | \
+                                                  (((uint64_t)(yl)&HFX_RDP_10_2_MASK)<<HFX_RDP_CMD_SET_SCISSOR_YL_SHIFT))
+#define HFX_RDP_PKT_SET_TEXTURE_IMAGE(format, size, width, addr) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_TEXTURE_IMAGE) | \
+                                                                  (((uint64_t)(format)&0x7ull)<<HFX_RDP_CMD_SET_TEXTURE_IMAGE_FORMAT_SHIFT) | \
+                                                                  (((uint64_t)(size)&0x3ull)<<HFX_RDP_CMD_SET_TEXTURE_IMAGE_SIZE_SHIFT) | \
+                                                                  (((uint64_t)(width)&0x7ffull)<<HFX_RDP_CMD_SET_TEXTURE_IMAGE_WIDTH_SHIFT) | \
+                                                                  ((uint64_t)(addr)&0x7ffffffull))
+#define HFX_RDP_PKT_SET_TILE(format, size, line, tmem, tile, pal, ct, mt, mask_t, shift_t, cs, ms, mask_s, shift_s) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_TILE) | \
+                                                                                                                    (((uint64_t)(format)&0x7ull)<<HFX_RDP_CMD_SET_TILE_FORMAT_SHIFT) | \
+                                                                                                                    (((uint64_t)(size)&0x3ull)<<HFX_RDP_CMD_SET_TILE_SIZE_SHIFT) | \
+                                                                                                                    (((uint64_t)(line)&0x3ffull)<<HFX_RDP_CMD_SET_TILE_LINE_SHIFT) | \
+                                                                                                                    (((uint64_t)(tmem)&0x3ffull)<<HFX_RDP_CMD_SET_TILE_TMEM_ADDR_SHIFT) | \
+                                                                                                                    (((uint64_t)(tile)&0x7ull)<<HFX_RDP_CMD_SET_TILE_TILE_SHIFT) | \
+                                                                                                                    (((uint64_t)(pal)&0xfull)<<HFX_RDP_CMD_SET_TILE_PAL_SHIFT) | \
+                                                                                                                    (((uint64_t)(ct)&0x1ull)<<HFX_RDP_CMD_SET_TILE_CT_SHIFT) | \
+                                                                                                                    (((uint64_t)(mt)&0x1ull)<<HFX_RDP_CMD_SET_TILE_MT_SHIFT) | \
+                                                                                                                    (((uint64_t)(mask_t)&0xfull)<<HFX_RDP_CMD_SET_TILE_MASK_T_SHIFT) | \
+                                                                                                                    (((uint64_t)(shift_t)&0xfull)<<HFX_RDP_CMD_SET_TILE_SHIFT_T_SHIFT) | \
+                                                                                                                    (((uint64_t)(cs)&0x1ull)<<HFX_RDP_CMD_SET_TILE_CS_SHIFT) | \
+                                                                                                                    (((uint64_t)(ms)&0x1ull)<<HFX_RDP_CMD_SET_TILE_MS_SHIFT) | \
+                                                                                                                    (((uint64_t)(mask_s)&0xfull)<<HFX_RDP_CMD_SET_TILE_MASK_S_SHIFT) | \
+                                                                                                                    (((uint64_t)(shift_s)&0xfull)<<HFX_RDP_CMD_SET_TILE_SHIFT_S_SHIFT))
+#define HFX_RDP_PKT_LOAD_TILE(sl,tl,tile,sh,th) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_LOAD_TILE) | \
+                                                (((uint64_t)(sl)&0x1fffull)<<HFX_RDP_CMD_LOAD_TILE_SL_SHIFT) | \
+                                                (((uint64_t)(tl)&0x1fffull)<<HFX_RDP_CMD_LOAD_TILE_TL_SHIFT) | \
+                                                (((uint64_t)(tile)&0x7ull)<<HFX_RDP_CMD_LOAD_TILE_TILE_SHIFT) | \
+                                                (((uint64_t)(sh)&0x1fffull)<<HFX_RDP_CMD_LOAD_TILE_SH_SHIFT) | \
+                                                (((th)&0x1fffull)<<HFX_RDP_CMD_LOAD_TILE_TH_SHIFT))
 #define HFX_RDP_PKT_SET_FILL_COLOR(color) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_FILL_COLOR) | (color))
 #define HFX_RDP_PKT_FILL_RECT(xl, yl, xh, yh) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_FILL_RECT) | \
                                               (((xl)&HFX_RDP_CMD_FILL_RECT_ARG_MASK) << HFX_RDP_CMD_FILL_RECT_XL_SHIFT) | \
