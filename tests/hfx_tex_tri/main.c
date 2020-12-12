@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdint.h>
+#include <hfx.h>
+#include <hfx_rb.h>
+#include <hfx_cmds.h>
+#include <hfx_int.h>
+#include <hfx_types.h>
+#include <libdragon.h>
+
+#define RGBA8_TO_RGBA5551(r,g,b,a) ((((r)&0xf8)<<8) | (((g)&0xf8)<<4) | (((b)&0xf8)>>2) | ((a)&0x01))
+
+static resolution_t res = RESOLUTION_320x240;
+static bitdepth_t bit = DEPTH_16_BPP;
+
+static int done = 1;
+static hfx_state *state;
+
+static char pbuf[256];
+float v1[] =
+{
+    0.0f, 0.0f, 0.0f,
+    100.0f, 0.0f, 0.0f,
+    100.0f / 2.0f, 100.0f, 0.0f,
+};
+
+uint8_t vc1[] =
+{
+    255.0f, 0.0f, 0.0f, 255.0f,
+    0.0f, 255.0f, 0.0f, 255.0f,
+    0.0f, 0.0f, 255.0f, 255.0f,
+};
+
+uint16_t tex_data[8*8] __attribute__((aligned(64)));
+
+void load_tex_dat()
+{
+    for(int j=0; j < 8; j++)
+    {
+        for(int i=0; i < 8; i++)
+        {
+            if(((j%2) == 0 && (i%2) == 0) || ((i%2)==1))
+            {
+                tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0x00,0x00,0x00,0xff);
+            }
+            else if(i < 3)
+            {
+                tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0xff,0x00,0x00,0xff);
+            }
+            else if(i >= 3 && i < 6)
+            {
+                tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0x00,0xff,0x00,0xff);
+            }
+            else
+            {
+                tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0x00,0x00,0xff,0xff);
+            }
+        }
+    }
+}
+
+int main(void)
+{
+    /* enable interrupts (on the CPU) */
+    init_interrupts();
+
+    /* Initialize peripherals */
+    display_init( res, bit, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE );
+
+    load_tex_dat();
+
+    state = hfx_init();
+
+    hfx_tex_image_2d(state, 0, 0, HFX_RGBA, 8, 8, 0, HFX_RGBA, HFX_UNSIGNED_SHORT_5_5_5_1, tex_data);
+
+    hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, v1);
+    hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, vc1);    
+
+    hfx_load_identity(state);
+    //hfx_rotate_f(state, 50, 0, 0, 1);
+    hfx_translate_f(state, 50.0f, 50.0f, 0.0f);
+
+    hfx_draw_arrays(state, HFX_TRIANGLES, 0, 3);
+
+    hfx_clear_color_f(state, 0.0f, 0.0f, 0.0f, 1.0f);
+
+    float angle = 0.0;
+
+    while(1)
+    {
+        if(angle == 360)
+            angle = 0;
+        else
+            angle += 1.0f;
+        done = 1;
+
+        // This angle causes graphical glitch
+        //angle = 240.0f;
+
+        // Queue the next frame up
+        hfx_clear(state, HFX_COLOR_BUFFER_BIT|HFX_DEPTH_BUFFER_BIT);
+        hfx_load_identity(state);
+        hfx_translate_f(state, 100.0f, 100.0f, 0.0f);
+        hfx_rotate_f(state, angle, 0, 0, 1);
+
+        hfx_draw_arrays(state, HFX_TRIANGLES, 0, 3);
+
+        hfx_swap_buffers(state);
+    }
+}

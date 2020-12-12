@@ -98,6 +98,7 @@ hfx_state *hfx_init()
     hfx_cmd_register_display(&state);
 
     HFX_UNUSED(console_calls);
+    
 #ifdef HFX_DEBUG
     /* Register ourselves with newlib */
     hook_stdio_calls( &console_calls );

@@ -12,7 +12,6 @@
 static resolution_t res = RESOLUTION_320x240;
 static bitdepth_t bit = DEPTH_16_BPP;
 
-static int done = 1;
 static hfx_state *state;
 
 static char pbuf[256];
@@ -161,7 +160,6 @@ int main(void)
 
 
     float angle = 0;
-    uint32_t count = 0;
     while(1)
     {
         if(angle == 360)

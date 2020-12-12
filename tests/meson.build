@@ -38,6 +38,9 @@ test_dict = {
     'hfx_cube' : [
         'main.c'
     ],
+    'hfx_tex_tri' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here

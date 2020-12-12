@@ -29,6 +29,7 @@ src_files = [
     'src/hfx_render_gl.c',
     'src/hfx_matrix.c',
     'src/hfx_state.c',
+    'src/hfx_texture.c',
 ]
 
 ucode_src_dir = './ucode_src/'
