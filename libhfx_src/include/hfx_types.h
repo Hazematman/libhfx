@@ -27,6 +27,7 @@ typedef struct hfx_state {
         bool depth_test;
         bool vertex_array;
         bool color_array;
+        bool texture_2d;
         bool dirty;
     } caps;
 

@@ -72,6 +72,8 @@ int main(void)
 
     state = hfx_init();
 
+    hfx_enable(state, HFX_TEXTURE_2D);
+
     hfx_tex_image_2d(state, 0, 0, HFX_RGBA, 8, 8, 0, HFX_RGBA, HFX_UNSIGNED_SHORT_5_5_5_1, tex_data);
 
     hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, v1);

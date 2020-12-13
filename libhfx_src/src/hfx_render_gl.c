@@ -52,6 +52,7 @@ void hfx_set_mode(hfx_state *state)
     uint64_t mode = 0;
     uint64_t combine_mode = 0;
     uint64_t cmds[2];
+    uint32_t combine_mode_type = HFX_RDP_CMD_SET_COMBINE_MODE_SHADE;
 
     /* Only update the mode if we need to */
     if(state->caps.dirty)
@@ -72,6 +73,12 @@ void hfx_set_mode(hfx_state *state)
             mode |= HFX_RDP_CMD_SET_MODE_ONE_CYCLE;
         }
 
+        // TODO need to add more specialized logic for handling different combine modes
+        if(state->caps.texture_2d)
+        {
+            combine_mode_type = HFX_RDP_CMD_SET_COMBINE_MODE_TEXEL0;
+        }
+
         // TODO set the rest of this state based on the graphics state
         mode |= HFX_RDP_CMD_SET_BLEND_MODE(1B_0, 0) |
                 HFX_RDP_CMD_SET_BLEND_MODE(1A_0, 0) |
@@ -83,10 +90,10 @@ void hfx_set_mode(hfx_state *state)
                 HFX_RDP_CMD_SET_MODE_ALPHA_CVG_SELECT |
                 HFX_RDP_CMD_SET_MODE_CVG_DEST_FULL;
 
-        combine_mode |= (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_0_SHIFT) |
-                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_0_SHIFT) |
-                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT) |
-                        (4ull<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT);
+        combine_mode |= (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_0_SHIFT) |
+                        (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_0_SHIFT) |
+                        (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT) |
+                        (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT);
 
 
         /* Send commands to the RDP */

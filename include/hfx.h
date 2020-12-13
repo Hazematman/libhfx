@@ -16,6 +16,8 @@
 
 #define HFX_UNSIGNED_SHORT_5_5_5_1  0x8034
 
+#define HFX_TEXTURE_2D          0x0de1
+
 #define HFX_RGBA                0x1908
 
 #define HFX_TRIANGLES			0x0004
