@@ -79,11 +79,11 @@ void barycentric(float px, float py, float x1, float y1, float x2, float y2, flo
     *u = 1.0f - *v - *w;
 }
 
-void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)
+void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
     /* conversion algorithm */
-    uint64_t edge_coef[4+8+2];
+    uint64_t edge_coef[4+8+2+8];
     uint32_t buffer_index = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
@@ -93,31 +93,35 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float x3 = v3[0], y3 = v3[1], z3 = v3[2];
 
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
+    float *t1 = vt1, *t2 = vt2, *t3 = vt3, *temp_t;
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
     if( y1 > y2 ) 
     { 
-        temp_x = x2, temp_y = y2; temp_z = z2 ;temp_c = c2;
+        temp_x = x2, temp_y = y2; temp_z = z2 ; temp_c = c2; temp_t = t2;
         y2 = y1; y1 = temp_y; 
         x2 = x1; x1 = temp_x;
         z2 = z1; z1 = temp_z;
         c2 = c1; c1 = temp_c;
+        t2 = t1; t1 = temp_t;
     }
     if( y2 > y3 ) 
     { 
-        temp_x = x3, temp_y = y3; temp_z = z3; temp_c = c3;
+        temp_x = x3, temp_y = y3; temp_z = z3; temp_c = c3; temp_t = t3;
         y3 = y2; y2 = temp_y; 
         x3 = x2; x2 = temp_x;
         z3 = z2; z2 = temp_z; 
         c3 = c2; c2 = temp_c;
+        t3 = t2; t2 = temp_t;
     }
     if( y1 > y2 ) 
     { 
-        temp_x = x2, temp_y = y2; temp_z = z2; temp_c = c2;
+        temp_x = x2, temp_y = y2; temp_z = z2; temp_c = c2; temp_t = t2;
         y2 = y1; y1 = temp_y; 
         x2 = x1; x1 = temp_x;
         z2 = z1; z1 = temp_z;
         c2 = c1; c1 = temp_c;
+        t2 = t1; t1 = temp_t;
     }
 
     x1 = floorf(x1) + fmodf(x1, 1.0f/4.0f);
@@ -172,6 +176,8 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t dzdx;
     uint32_t dzdy;
 
+    uint32_t s, t, dsdx, dtdx, dsde, dtde, dsdy, dtdy;
+
     float inv_z1 = (fabs(z1) < MIN_FLOAT) ? 65532.0f : (1.0f / z1);
     float inv_z2 = (fabs(z2) < MIN_FLOAT) ? 65532.0f : (1.0f / z2);
     float inv_z3 = (fabs(z3) < MIN_FLOAT) ? 65532.0f : (1.0f / z3);
@@ -199,6 +205,18 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         dbde = ((c1[2]*u4 + c2[2]*v4 + c3[2]*w4) - c1[2]) * to_fixed_16_16;
         dade = ((c1[3]*u4 + c2[3]*v4 + c3[3]*w4) - c1[3]) * to_fixed_16_16;
 
+        /* Calculate tex values */
+        s = t1[0] * to_fixed_16_16;
+        t = t1[1] * to_fixed_16_16;
+
+        dsdx = ((t1[0]*u2 + t2[0]*v2 + t3[0]*w2) - t1[0]) * to_fixed_16_16;
+        dtdx = ((t1[1]*u2 + t2[1]*v2 + t3[1]*w2) - t1[1]) * to_fixed_16_16;
+
+        dsdy = ((t1[0]*u3 + t2[0]*v3 + t3[0]*w3) - t1[0]) * to_fixed_16_16;
+        dtdy = ((t1[1]*u3 + t2[1]*v3 + t3[1]*w3) - t1[1]) * to_fixed_16_16;
+
+        dsde = ((t1[0]*u4 + t2[0]*v4 + t3[0]*w4) - t1[0]) * to_fixed_16_16;
+        dtde = ((t1[1]*u4 + t2[1]*v4 + t3[1]*w4) - t1[1]) * to_fixed_16_16;
 
         /* Calculate depth values */
         dzdx = ((uint32_t)(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_16_16) << 12);
@@ -207,7 +225,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     }
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
-                              HFX_RDP_CMD_TRI_SHADE_DEPTH,
+                              HFX_RDP_CMD_TRI_SHADE_TEX_DEPTH,
                               flip,
                               0,
                               0,
@@ -224,7 +242,8 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
                                      drdx, dgdx, dbdx, dadx,
                                      drdy, dgdy, dbdy, dady,
                                      drde, dgde, dbde, dade);
+    HFX_RDP_PKT_TRI_TEX(edge_coef, s, t, iz1, dsdx, dtdx, dzdx, dsde, dtde, dzde, dsdy, dtdy, dzdy);
     HFX_RDP_PKT_TRI_DEPTH(edge_coef, iz1, dzdx, dzdy, dzde);
 
-    hfx_cmd_rdp(state, sizeof(edge_coef)/sizeof(uint64_t), edge_coef);
+    hfx_cmd_rdp(state, buffer_index, edge_coef);
 }

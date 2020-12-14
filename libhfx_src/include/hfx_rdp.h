@@ -77,7 +77,7 @@
 #define     HFX_RDP_CMD_SET_MODE_IMAGE_READ                     (1ull << 6ull)
 #define     HFX_RDP_CMD_SET_MODE_Z_UPDATE_ENABLE                (1ull << 5ull)
 #define     HFX_RDP_CMD_SET_MODE_Z_COMPARE_ENABLE               (1ull << 4ull)
-/* NOTE: The following values for Z_SOURCE_SEL may be flipped */
+#define     HFX_RDP_CMD_SET_MODE_AA_ENABLE                      (1ull << 3ull)
 #define     HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PIXEL             (0ull << 2ull)
 #define     HFX_RDP_CMD_SET_MODE_Z_SOURCE_SEL_PRIM              (1ull << 2ull)
 #define HFX_RDP_CMD_TRI_NON_SHADE   0x08ull
@@ -93,7 +93,9 @@
 #define     HFX_RDP_CMD_TRI_YH_MASK                 0x7fffull
 #define     HFX_RDP_CMD_TRI_YH_SHIFT                0ull
 #define HFX_RDP_CMD_TRI_SHADE                       0x0cull
+#define HFX_RDP_CMD_TRI_TEX_DEPTH                   0x0bull
 #define HFX_RDP_CMD_TRI_SHADE_DEPTH                 0x0dull
+#define HFX_RDP_CMD_TRI_SHADE_TEX_DEPTH             0x0full
 #define HFX_RDP_CMD_SET_BLEND_COLOR                 0x39ull
 #define HFX_RDP_CMD_SET_COMBINE_MODE                0x3cull
 #define     HFX_RDP_CMD_SET_COMBINE_MODE_COMBINED           0ull
@@ -194,7 +196,9 @@
 #define     HFX_RDP_CMD_LOAD_TILE_TILE_SHIFT        24ull
 #define     HFX_RDP_CMD_LOAD_TILE_SH_SHIFT          12ull
 #define     HFX_RDP_CMD_LOAD_TILE_TH_SHIFT          0ull
+#define HFX_RPD_CMD_SYNC_LOAD                       0x26ull
 #define HFX_RDP_CMD_SYNC_PIPE                       0x27ull
+#define HFX_RDP_CMD_SYNC_TILE                       0x28ull
 #define HFX_RDP_CMD_SYNC_FULL                       0x29ull
 
 
@@ -204,6 +208,7 @@
 #define HFX_RDP_MAKE_CMD(cmd) ((HFX_RDP_CMD_RESERVE|(cmd)) << HFX_RDP_CMD_SHIFT)
 #define HFX_RDP_PKT_SET_COLOR_IMAGE(format, size, width, addr) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_COLOR_IMAGE) | ((uint64_t)(format) << 53) | ((uint64_t)(size) << 51) | (((uint64_t)(width-1)&0x3FF)<<32)  | (uintptr_t)(addr))
 #define HFX_RDP_PKT_SET_Z_IMAGE(z_image) (uint64_t)(HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_Z_IMAGE) | (uintptr_t)(z_image))
+#define HFX_RDP_PKT_SYNC_LOAD (HFX_RDP_MAKE_CMD(HFX_RPD_CMD_SYNC_LOAD))
 #define HFX_RDP_PKT_SYNC_PIPE (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_PIPE))
 #define HFX_RDP_PKT_SYNC_FULL (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SYNC_FULL))
 #define HFX_RDP_PKT_SET_SCISSOR(xh,yh,f,o,xl,yl) (HFX_RDP_MAKE_CMD(HFX_RDP_CMD_SET_SCISSOR) | \
@@ -276,6 +281,17 @@
 #define HFX_RDP_PKT_TRI_DEPTH(buffer, inv_z, dzdx, dzdy, dzde) \
             (buffer)[buffer_index++] = ((uint64_t)(inv_z) << 32) | ((uint64_t)(dzdx)); \
             (buffer)[buffer_index++] = ((uint64_t)(dzde) << 32) | ((uint64_t)(dzdy));
+#define HFX_RDP_PKT_TRI_TEX(buffer, s, t, w, dsdx, dtdx, dwdx, dsde, dtde, dwde, dsdy, dtdy, dwdy) \
+            (buffer)[buffer_index++] = ((((uint64_t)(s))&0xFFFF0000) << 32) | ((((uint64_t)(t))&0xFFFF0000) << 16) | ((((uint64_t)(w))&0xFFFF0000)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsdx))&0xFFFF0000) << 32) | ((((uint64_t)(dtdx))&0xFFFF0000) << 16) | ((((uint64_t)(dwdx))&0xFFFF0000)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(s))&0x0000FFFF) << 48) | ((((uint64_t)(t))&0x0000FFFF) << 32) | ((((uint64_t)(w))&0x0000FFFF) << 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsdx))&0x0000FFFF) << 48) | ((((uint64_t)(dtdx))&0x0000FFFF) << 32) | ((((uint64_t)(dwdx))&0x0000FFFF) << 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsde))&0xFFFF0000) << 32) | ((((uint64_t)(dtde))&0xFFFF0000) << 16) | ((((uint64_t)(dwde))&0xFFFF0000)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsdy))&0xFFFF0000) << 32) | ((((uint64_t)(dtdy))&0xFFFF0000) << 16) | ((((uint64_t)(dwdy))&0xFFFF0000)); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsde))&0x0000FFFF) << 48) | ((((uint64_t)(dtde))&0x0000FFFF) << 32) | ((((uint64_t)(dwde))&0x0000FFFF) << 16); \
+            (buffer)[buffer_index++] = ((((uint64_t)(dsdy))&0x0000FFFF) << 48) | ((((uint64_t)(dtdy))&0x0000FFFF) << 32) | ((((uint64_t)(dwdy))&0x0000FFFF) << 16);
+
+
 
 #define HFX_MAX_DEPTH_VALUE 0x3fff
 #define HFX_PACK_Z_VALUE(z, dz) (((z)<<2)|(dz))

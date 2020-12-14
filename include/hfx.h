@@ -56,7 +56,7 @@ void hfxScalef(hfx_state *state, float x, float y, float z);
 void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count);
 
 void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, uint32_t yl);
-void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3);
+void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3);
 void hfx_color_f(hfx_state *state, float r, float g, float b, float a);
 void hfx_clear_color_f(hfx_state *state, float r, float g, float b, float a);
 void hfx_clear(hfx_state *state, uint32_t bits);
@@ -68,6 +68,7 @@ void hfx_ortho_f(hfx_state *state, float left, float right, float top, float bot
 
 void hfx_vertex_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data);
 void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data);
+void hfx_tex_coord_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data);
 void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t count);
 
 void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t internalformat, uint32_t width, uint32_t height, int32_t border, uint32_t format, uint32_t type, const void *data);

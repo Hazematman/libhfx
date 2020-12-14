@@ -3,6 +3,7 @@
 #include <hfx_int.h>
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
+#include <stdio.h>
 
 void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t internalformat, uint32_t width, uint32_t height, int32_t border, uint32_t format, uint32_t type, const void *data)
 {
@@ -32,7 +33,7 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
                                    0 // TODO set shift to zero
                                    );
     cmds[2] = HFX_RDP_PKT_LOAD_TILE(0, // TODO set sl to zero
-                                    0, // TODO set tl to zeor
+                                    0, // TODO set tl to zero
                                     0, // TODO set tile to zero
                                     (width-1)<<2,
                                     (height-1)<<2);

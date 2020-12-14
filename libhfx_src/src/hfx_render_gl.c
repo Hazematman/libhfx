@@ -38,6 +38,12 @@ void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t 
     state->color_size = size;
 }
 
+void hfx_tex_coord_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data)
+{
+    state->tex_coord_pointer = (float*)data;
+    state->tex_coord_size = size;
+}
+
 void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, uint32_t yl)
 {
     uint64_t cmds[1];
@@ -48,7 +54,7 @@ void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, ui
 
 void hfx_set_mode(hfx_state *state)
 {
-    bool is_two_cycle = true; // TODO figure out when we need two cycle
+    bool is_two_cycle = false; // TODO figure out when we need two cycle
     uint64_t mode = 0;
     uint64_t combine_mode = 0;
     uint64_t cmds[2];
@@ -77,6 +83,8 @@ void hfx_set_mode(hfx_state *state)
         if(state->caps.texture_2d)
         {
             combine_mode_type = HFX_RDP_CMD_SET_COMBINE_MODE_TEXEL0;
+            mode |= HFX_RDP_CMD_SET_MODE_BI_LERP_0 |
+                    HFX_RDP_CMD_SET_MODE_DETAIL_TEX_EN;
         }
 
         // TODO set the rest of this state based on the graphics state
@@ -95,10 +103,10 @@ void hfx_set_mode(hfx_state *state)
                         (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_RGB_D_1_SHIFT) |
                         (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT);
 
-
         /* Send commands to the RDP */
         cmds[0] = HFX_RDP_PKT_SET_MODE(mode);
         cmds[1] = HFX_RDP_PKT_SET_COMBINE_MODE(combine_mode);
+
         hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
 
         state->caps.dirty = false;
@@ -110,7 +118,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 {
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
-    float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4];
+    float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2], t2[2], t3[2];
 
     hfx_set_mode(state);
 
@@ -146,7 +154,16 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
         c3[2] = (float)state->color_pointer[i*3*state->color_size+10];
         c3[3] = (float)state->color_pointer[i*3*state->color_size+11];
 
-        hfx_draw_tri_f(state, v1, v2, v3, c1, c2, c3);
+        t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0];
+        t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1];
+
+        t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2];
+        t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3];
+
+        t3[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+4];
+        t3[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+5];
+
+        hfx_draw_tri_f(state, v1, v2, v3, c1, c2, c3, t1, t2, t3);
     }
 }
 
@@ -184,7 +201,7 @@ void hfx_clear(hfx_state *state, uint32_t bits)
     hfx_cmd_rdp(state, index, cmds);
 }
 
-void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3)
+void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     float v1_t[4], v2_t[4], v3_t[4];
 
@@ -192,5 +209,5 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
     hfx_matrix_vector_multiply(state, state->model_matrix, v2, v2_t);
     hfx_matrix_vector_multiply(state, state->model_matrix, v3, v3_t);
 
-    hfx_render_tri_f(state, v1_t, v2_t, v3_t, vc1, vc2, vc3);
+    hfx_render_tri_f(state, v1_t, v2_t, v3_t, vc1, vc2, vc3, vt1, vt2, vt3);
 }

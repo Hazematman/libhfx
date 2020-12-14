@@ -24,7 +24,7 @@ void hfx_cmd_register_display(hfx_state *state);
 void hfx_cmd_rdp(hfx_state *state, uint32_t num_cmds, uint64_t *cmds);
 
 void hfx_matrix_vector_multiply(hfx_state *state, float *mat, float *vec, float *result);
-void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3);
+void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3);
 
 
 #endif
