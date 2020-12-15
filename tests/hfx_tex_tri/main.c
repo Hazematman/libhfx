@@ -30,11 +30,11 @@ float v1[] =
 float t1[] =
 {
     0.0f, 0.0f,
-    256.0f, 0.0f,
-    256.0f, 256.0f,
+    1.0f, 0.0f,
+    1.0f, 1.0f,
     0.0f, 0.0f,
-    256.0f, 256.0f,
-    0.0f, 256.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
 };
 
 uint8_t vc1[] =
@@ -47,32 +47,32 @@ uint8_t vc1[] =
     255.0f, 255.0f, 255.0f, 1.0f,
 };
 
-static uint16_t tex_data[8*8] __attribute__((aligned(64)));
+static uint16_t tex_data[16*16] __attribute__((aligned(64)));
 
 void load_tex_dat()
 {
-    for(int j=0; j < 8; j++)
+    for(int j=0; j < 16; j++)
     {
-        for(int i=0; i < 8; i++)
+        for(int i=0; i < 16; i++)
         {
 
             if((i+j)%2 == 0)
             {
-                tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0xffu,0xffu,0xffu,0xffu);
+                tex_data[j*16 + i] = RGBA8_TO_RGBA5551(0xffu,0xffu,0xffu,0xffu);
             }
             else
             {
                 if(i%3 == 0)
                 {
-                    tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0xffu,0x00u,0x00u,0xffu);
+                    tex_data[j*16 + i] = RGBA8_TO_RGBA5551(0xffu,0x00u,0x00u,0xffu);
                 } 
                 else if(i%3 == 1)
                 {
-                    tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0x00u,0xffu,0x00u,0xffu);
+                    tex_data[j*16 + i] = RGBA8_TO_RGBA5551(0x00u,0xffu,0x00u,0xffu);
                 }
                 else
                 {
-                    tex_data[j*8 + i] = RGBA8_TO_RGBA5551(0x00u,0x00u,0xffu,0xffu);
+                    tex_data[j*16 + i] = RGBA8_TO_RGBA5551(0x00u,0x00u,0xffu,0xffu);
                 }
             }
             
@@ -102,24 +102,17 @@ int main(void)
 
     hfx_enable(state, HFX_TEXTURE_2D);
 
-    hfx_tex_image_2d(state, 0, 0, HFX_RGBA, 8, 8, 0, HFX_RGBA, HFX_UNSIGNED_SHORT_5_5_5_1, tex_data);
+    hfx_tex_image_2d(state, 0, 0, HFX_RGBA, 16, 16, 0, HFX_RGBA, HFX_UNSIGNED_SHORT_5_5_5_1, tex_data);
 
     hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, v1);
     hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, vc1);  
     hfx_tex_coord_pointer(state, 2, HFX_FLOAT, 0, t1);
-
-    hfx_load_identity(state);
-    //hfx_rotate_f(state, 50, 0, 0, 1);
-    hfx_translate_f(state, 50.0f, 50.0f, 0.0f);
-
-    hfx_draw_arrays(state, HFX_TRIANGLES, 0, 3);
 
     hfx_clear_color_f(state, 0.2f, 0.0f, 0.9f, 1.0f);
     //hfx_clear_color_f(state, 1.0f, 1.0f, 1.0f, 1.0f);
 
 
     float angle = 0.0;
-
     while(1)
     {
         if(angle == 360)

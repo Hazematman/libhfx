@@ -18,7 +18,7 @@ extern void *__safe_buffer[];
 
 void *hfx_display_get_pointer(hfx_state *state)
 {
-    return get_disp_buffer(state->display);
+    return state->display_ptr;
 }
 
 void hfx_get_display(hfx_state *state)
@@ -41,22 +41,19 @@ void hfx_get_display(hfx_state *state)
     {
         hfx_fatal_error(state);
     }
+
+    state->display_ptr = (void*)(0x1ffffff & (uintptr_t)get_disp_buffer(state->display));
 }
 
 void hfx_cmd_register_display(hfx_state *state)
 {
     depth_buffer = hfx_depth_buffer;
-
     uint64_t buffer_cmds[2];
     /* Get display handle */
     hfx_get_display(state);
-    
-    hfx_rb_reserve(state, 2);
-    hfx_rb_queue(state, HFX_CMD_SET_DISPLAY);
-    hfx_rb_queue(state, (uint32_t)get_disp_buffer(state->display));
 
-    buffer_cmds[0] = HFX_RDP_PKT_SET_Z_IMAGE(hfx_depth_buffer);
-    buffer_cmds[1] = HFX_RDP_PKT_SYNC_PIPE;
+    buffer_cmds[0] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
+    buffer_cmds[1] = HFX_RDP_PKT_SET_Z_IMAGE(hfx_depth_buffer);
     hfx_cmd_rdp(state, sizeof(buffer_cmds)/sizeof(uint64_t), buffer_cmds);
 }
 

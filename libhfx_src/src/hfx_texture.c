@@ -25,11 +25,11 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
                                    0, // TODO palette is hardcoded to 0
                                    0, // TODO ct set to zero
                                    0, // TODO mt set to zero
-                                   3, // TODO mask_t hardcoded to 3 bits
+                                   4, // TODO mask_t hardcoded to 3 bits
                                    0, // TODO shift_t set to zero
                                    0, // TODO cs set to zero
                                    0, // TODO ms set to zero
-                                   3, // TODO mask_s hardcoded to 3 bits
+                                   4, // TODO mask_s hardcoded to 3 bits
                                    0 // TODO set shift to zero
                                    );
     cmds[2] = HFX_RDP_PKT_LOAD_TILE(0, // TODO set sl to zero
@@ -39,4 +39,8 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
                                     (height-1)<<2);
 
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+
+    state->cur_tex->width = width;
+    state->cur_tex->height = height;
+    state->cur_tex->type = HFX_UNSIGNED_SHORT_5_5_5_1;
 }

@@ -59,6 +59,8 @@ hfx_state *hfx_init()
     state.rb_end = 0;
     state.rb_size = HFX_RB_SIZE; // TODO probably want to make this programmable
 
+    state.cur_tex = &state.default_tex_info;
+
     /* Initalize variables in hfx state */
     hfx_rb_calc_size_mask(&state);
 

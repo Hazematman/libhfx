@@ -13,6 +13,12 @@ typedef struct hfx_color {
     uint8_t a;
 } hfx_color;
 
+typedef struct hfx_tex_info {
+    uint32_t width;
+    uint32_t height;
+    uint32_t type;
+} hfx_tex_info;
+
 typedef struct hfx_state {
     uint32_t rb[HFX_RB_SIZE/4] __attribute__((aligned(8)));
     uint32_t rb_start;
@@ -21,6 +27,7 @@ typedef struct hfx_state {
     uint32_t rb_size_mask;
     display_context_t display;
     display_context_t last_display;
+    void *display_ptr;
 
     struct
     {
@@ -30,6 +37,9 @@ typedef struct hfx_state {
         bool texture_2d;
         bool dirty;
     } caps;
+
+    hfx_tex_info default_tex_info;
+    hfx_tex_info *cur_tex;
 
     uint64_t rdp_mode;
 

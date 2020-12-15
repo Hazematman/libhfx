@@ -119,6 +119,8 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2], t2[2], t3[2];
+    float tex_width = state->cur_tex->width*32.0f - 1.0f;
+    float tex_height= state->cur_tex->height*32.0f - 1.0f;
 
     hfx_set_mode(state);
 
@@ -154,14 +156,14 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
         c3[2] = (float)state->color_pointer[i*3*state->color_size+10];
         c3[3] = (float)state->color_pointer[i*3*state->color_size+11];
 
-        t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0];
-        t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1];
+        t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0]*tex_width;
+        t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1]*tex_height;
 
-        t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2];
-        t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3];
+        t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2]*tex_width;
+        t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3]*tex_height;
 
-        t3[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+4];
-        t3[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+5];
+        t3[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+4]*tex_width;
+        t3[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+5]*tex_height;
 
         hfx_draw_tri_f(state, v1, v2, v3, c1, c2, c3, t1, t2, t3);
     }
@@ -170,7 +172,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
     uint32_t index = 0;
-    uint64_t cmds[1+6+4+1];
+    uint64_t cmds[1+6+3+1];
 
     cmds[index++] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM |
                                    HFX_RDP_CMD_SET_MODE_FILL |
@@ -182,9 +184,7 @@ void hfx_clear(hfx_state *state, uint32_t bits)
         cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_depth_buffer);
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
         cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
-        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
     }
 
     /* If we are clearing color buffer */
@@ -193,7 +193,6 @@ void hfx_clear(hfx_state *state, uint32_t bits)
         uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g, state->clear_color.b, state->clear_color.a);
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
         cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-        cmds[index++] = HFX_RDP_PKT_SYNC_PIPE;
     }
     
     cmds[index++] = HFX_RDP_PKT_SET_MODE(state->rdp_mode);
