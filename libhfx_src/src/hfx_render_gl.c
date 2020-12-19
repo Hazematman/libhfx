@@ -172,7 +172,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 void hfx_clear(hfx_state *state, uint32_t bits)
 {
     uint32_t index = 0;
-    uint64_t cmds[1+6+3+2+10];
+    uint64_t cmds[1+4+2+1];
 
     cmds[index++] = HFX_RDP_PKT_SET_MODE(HFX_RDP_CMD_SET_MODE_ATOMIC_PRIM |
                                    HFX_RDP_CMD_SET_MODE_FILL |
