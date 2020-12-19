@@ -41,9 +41,6 @@ test_dict = {
     'hfx_tex_tri' : [
         'main.c'
     ],
-    'hfx_can' : [
-        'main.c'
-    ],
 }
 
 # Change compiler flags here
