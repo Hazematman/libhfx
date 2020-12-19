@@ -118,7 +118,7 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 {
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
-    float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2], t2[2], t3[2];
+    float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2]={0}, t2[2]={0}, t3[2]={0};
     float tex_width = state->cur_tex->width*32.0f - 1.0f;
     float tex_height= state->cur_tex->height*32.0f - 1.0f;
 
@@ -156,14 +156,17 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
         c3[2] = (float)state->color_pointer[i*3*state->color_size+10];
         c3[3] = (float)state->color_pointer[i*3*state->color_size+11];
 
-        t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0]*tex_width;
-        t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1]*tex_height;
+        if(state->caps.texture_2d)
+        {
+            t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0]*tex_width;
+            t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1]*tex_height;
 
-        t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2]*tex_width;
-        t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3]*tex_height;
+            t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2]*tex_width;
+            t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3]*tex_height;
 
-        t3[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+4]*tex_width;
-        t3[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+5]*tex_height;
+            t3[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+4]*tex_width;
+            t3[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+5]*tex_height;
+        }
 
         hfx_draw_tri_f(state, v1, v2, v3, c1, c2, c3, t1, t2, t3);
     }

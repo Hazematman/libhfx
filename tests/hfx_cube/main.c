@@ -156,9 +156,6 @@ int main(void)
     hfx_vertex_pointer(state, 3, HFX_FLOAT, 0, cube_verts);
     hfx_color_pointer(state, 4, HFX_UNSIGNED_BYTE, 0, cube_colors);
 
-    hfx_clear(state, HFX_COLOR_BUFFER_BIT | HFX_DEPTH_BUFFER_BIT);
-
-
     float angle = 0;
     while(1)
     {

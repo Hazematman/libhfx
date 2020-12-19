@@ -89,12 +89,30 @@ static uint32_t float_to_fixed(float a)
         return a * 65536.0;
 }
 
+uint32_t tri_draw_mode(hfx_state *state)
+{
+    uint32_t mode = 0xc;
+
+    if(state->caps.depth_test)
+    {
+        mode |= 0x1;
+    }
+
+    if(state->caps.texture_2d)
+    {
+        mode |= 0x2;
+    }
+
+    return mode;
+}
+
 void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
     /* conversion algorithm */
     uint64_t edge_coef[4+8+2+8];
     uint32_t buffer_index = 0;
+    uint32_t tri_mode = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
     float temp_x, temp_y, temp_z;
@@ -104,6 +122,8 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
 
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
     float *t1 = vt1, *t2 = vt2, *t3 = vt3, *temp_t;
+
+    tri_mode = tri_draw_mode(state);
 
     /* sort vertices by Y ascending to find the major, mid and low edges */
     if( y1 > y2 ) 
@@ -235,7 +255,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     }
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
-                              HFX_RDP_CMD_TRI_SHADE_TEX_DEPTH,
+                              tri_mode,
                               flip,
                               0,
                               0,
@@ -252,8 +272,15 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
                                      drdx, dgdx, dbdx, dadx,
                                      drdy, dgdy, dbdy, dady,
                                      drde, dgde, dbde, dade);
-    HFX_RDP_PKT_TRI_TEX(edge_coef, s, t, iz1, dsdx, dtdx, dzdx, dsde, dtde, dzde, dsdy, dtdy, dzdy);
-    HFX_RDP_PKT_TRI_DEPTH(edge_coef, iz1, dzdx, dzdy, dzde);
+    if(state->caps.texture_2d)
+    {
+        HFX_RDP_PKT_TRI_TEX(edge_coef, s, t, iz1, dsdx, dtdx, dzdx, dsde, dtde, dzde, dsdy, dtdy, dzdy);
+    }
+
+    if(state->caps.depth_test)
+    {
+        HFX_RDP_PKT_TRI_DEPTH(edge_coef, iz1, dzdx, dzdy, dzde);
+    }
 
     hfx_cmd_rdp(state, buffer_index, edge_coef);
 }
