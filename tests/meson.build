@@ -41,6 +41,9 @@ test_dict = {
     'hfx_tex_tri' : [
         'main.c'
     ],
+    'hfx_can' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here
@@ -53,6 +56,7 @@ cflags = [
 '-O0',
 '-Wall',
 '-MMD',
+'-g',
 ]
 
 hfx_lib_path = prj_root+'/build'

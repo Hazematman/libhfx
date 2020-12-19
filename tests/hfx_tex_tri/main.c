@@ -84,7 +84,7 @@ void load_tex_dat()
 
 void exception(exception_t *data)
 {
-    hfx_fatal_error(state);
+    hfx_fatal_error(state, "exception");
 }
 
 int main(void)

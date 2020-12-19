@@ -133,7 +133,7 @@ uint8_t cube_colors[] =
 
 void exception(exception_t *data)
 {
-    hfx_fatal_error(state);
+    hfx_fatal_error(state, "exception");
 }
 
 int main(void)

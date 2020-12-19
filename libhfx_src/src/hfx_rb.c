@@ -54,7 +54,7 @@ void hfx_rb_reserve(hfx_state *state, uint32_t num_cmds)
 
             if(count >= RB_TIMEOUT)
             {
-                hfx_fatal_error(state);
+                hfx_fatal_error(state, "timeout wait for rb");
             }
             else
             {
@@ -80,4 +80,5 @@ void hfx_rb_submit(hfx_state *state)
     {
         hfx_write_reg(HFX_VADDR_REG_RB_END, state->rb_end);
     }
+    hfx_write_reg(HFX_VADDR_REG_RB_END, state->rb_end);
 }

@@ -49,7 +49,9 @@ cflags = [
 '-mtune=vr4300',
 '-O0',
 '-Wall',
+'-Wpedantic',
 '-MMD',
+'-g',
 ]
 
 ucode_cflags = [

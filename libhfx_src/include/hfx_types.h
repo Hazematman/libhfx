@@ -19,7 +19,7 @@ typedef struct hfx_tex_info {
     uint32_t type;
 } hfx_tex_info;
 
-typedef struct hfx_state {
+struct hfx_state {
     uint32_t rb[HFX_RB_SIZE/4] __attribute__((aligned(8)));
     uint32_t rb_start;
     uint32_t rb_end;
@@ -62,6 +62,6 @@ typedef struct hfx_state {
         uint32_t width;
         uint32_t height;
     } display_dim;
-} hfx_state __attribute__((aligned(8)));
+};
 
 #endif

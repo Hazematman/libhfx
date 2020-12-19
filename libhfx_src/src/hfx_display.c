@@ -23,6 +23,7 @@ void *hfx_display_get_pointer(hfx_state *state)
 
 void hfx_get_display(hfx_state *state)
 {
+    display_context_t disp = 0;
     state->last_display = state->display;
     uint32_t count = 0;
     do
@@ -33,16 +34,19 @@ void hfx_get_display(hfx_state *state)
         }
 
         count += 1;
-        state->display = display_lock();
+        disp = display_lock();
         hfx_wait_us(1);
-    } while(state->display == 0);
+    } while(disp == 0);
 
     if(count >= DISPLAY_TIMEOUT)
     {
-        hfx_fatal_error(state);
+        hfx_fatal_error(state, "timeout wait for display");
     }
 
+    state->display = disp;
     state->display_ptr = (void*)(0x1ffffff & (uintptr_t)get_disp_buffer(state->display));
+    printf("Display is %p\n", get_disp_buffer(state->display));
+    printf("Safe displays are %p %p\n", get_disp_buffer(1), get_disp_buffer(2));
 }
 
 void hfx_cmd_register_display(hfx_state *state)
@@ -53,7 +57,7 @@ void hfx_cmd_register_display(hfx_state *state)
     hfx_get_display(state);
 
     buffer_cmds[0] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
-    buffer_cmds[1] = HFX_RDP_PKT_SET_Z_IMAGE(hfx_depth_buffer);
+    buffer_cmds[1] = HFX_RDP_PKT_SET_Z_IMAGE(0x1ffffff&(uintptr_t)hfx_depth_buffer);
     hfx_cmd_rdp(state, sizeof(buffer_cmds)/sizeof(uint64_t), buffer_cmds);
 }
 

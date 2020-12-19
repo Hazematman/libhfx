@@ -44,7 +44,7 @@ void hfx_normalize(hfx_state *state, float *vector, float *result)
 
     if(mag == 0)
     {
-        hfx_fatal_error(state);
+        hfx_fatal_error(state, "normalize zero vector");
     }
     else
     {
@@ -157,4 +157,9 @@ void hfx_ortho_f(hfx_state *state, float left, float right, float top, float bot
     result[15] = 1.0f;
 
     hfx_matrix_multiply(state, state->model_matrix, result, state->model_matrix);
+}
+
+void hfx_mult_matrix_f(hfx_state *state, float *mat)
+{
+    hfx_matrix_multiply(state, state->model_matrix, mat, state->model_matrix);
 }

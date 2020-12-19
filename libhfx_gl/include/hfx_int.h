@@ -1,1 +1,1 @@
-#define hfx_fatal_error(state)
+#define hfx_fatal_error(state, msg)

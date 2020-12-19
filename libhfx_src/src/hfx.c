@@ -50,7 +50,7 @@ void hfx_rdp_int()
 
 void hfx_rsp_int()
 {
-    hfx_fatal_error(&state);
+    hfx_fatal_error(&state, "RSP interrupt");
 }
 
 hfx_state *hfx_init()
@@ -64,14 +64,14 @@ hfx_state *hfx_init()
     /* Initalize variables in hfx state */
     hfx_rb_calc_size_mask(&state);
 
-    /* Initalize capabilties */
-    hfx_init_caps(&state);
-    hfx_set_mode(&state);
-    hfx_set_scissor(&state, 0, 0, 320<<2, 240<<2);
-
     /* For now hardcode display dimensions to 320x240 */
     state.display_dim.width = 320;
     state.display_dim.height = 240;
+
+        /* Initalize capabilties */
+    hfx_init_caps(&state);
+    hfx_set_mode(&state);
+    hfx_set_scissor(&state, 0, 0, (state.display_dim.width-1)<<2, (state.display_dim.height-1)<<2);
     
     /* Initalize RSP */
     rsp_init();
@@ -83,8 +83,8 @@ hfx_state *hfx_init()
     set_DP_interrupt(1);
     
     /* Set RB pointer and size in ucode data */
-    uint32_t data_size = (uint32_t) (&_hfx_ucode_start - &_hfx_ucode_data_start);
-    uint32_t ucode_size = (uint32_t) (&_hfx_ucode_end - &_hfx_ucode_start);
+    uint32_t data_size = (uint32_t) ((uint8_t*)&_hfx_ucode_start - (uint8_t*)&_hfx_ucode_data_start);
+    uint32_t ucode_size = (uint32_t) ((uint8_t*)&_hfx_ucode_end - (uint8_t*)&_hfx_ucode_start);
     
     uint32_t *data_ptr = (uint32_t*)&_hfx_ucode_data_start;
     data_ptr[HFX_REG_RB_ADDR/4] = (uint32_t)&state.rb;
@@ -120,7 +120,7 @@ uint32_t hfx_read_reg(uint32_t addr)
     return *((volatile uint32_t*)(0xA0000000|addr));
 }
 
-void hfx_register_rsp_int(hfx_state *state, void *func_ptr)
+void hfx_register_rsp_int(hfx_state *state, void (*func_ptr)())
 {
     /* Attach the RSP intterupt handler */
     register_SP_handler(func_ptr);
@@ -152,13 +152,13 @@ void hfx_wait_for_idle(hfx_state *state)
         count += 1;
         if(count > RDP_TIMEOUT)
         {
-            hfx_fatal_error(state);
+            hfx_fatal_error(state, "timeout wait for idle");
         }
         hfx_wait_us(1);
     }
 }
 
-void hfx_fatal_error(hfx_state *state)
+void hfx_fatal_error(hfx_state *state, char *msg)
 {
     // TODO replace this with proper define
     uint32_t rdp_status = hfx_read_reg(0x0410000C);
@@ -194,6 +194,8 @@ void hfx_fatal_error(hfx_state *state)
 
     sprintf(pbuf, "RDP FIFO\nStart 0x%lx, end 0x%lx, current 0x%lx", rdp_start, rdp_end, rdp_current);
     graphics_draw_text(state->last_display, 10, 80, pbuf);
+
+    graphics_draw_text(state->last_display, 10, 100, msg);
 
     while(1)
     {

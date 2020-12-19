@@ -13,7 +13,7 @@ void hfx_init_caps(hfx_state *state);
 void hfx_set_mode(hfx_state *state);
 
 void hfx_wait_us(uint64_t num_us);
-void hfx_fatal_error(hfx_state *state);
+void hfx_fatal_error(hfx_state *state, char *msg);
 
 /* Internal HFX cmds */
 void hfx_cmd_nop(hfx_state *state);

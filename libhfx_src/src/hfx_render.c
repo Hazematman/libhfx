@@ -79,6 +79,16 @@ void barycentric(float px, float py, float x1, float y1, float x2, float y2, flo
     *u = 1.0f - *v - *w;
 }
 
+static uint32_t float_to_fixed(float a)
+{
+    if(a > 32767)
+        return (32767<<16);
+    else if(a < -32768)
+        return (-32768<<16);
+    else
+        return a * 65536.0;
+}
+
 void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     /* Credit to libdragon rdp_draw_filled_triangle for providing the */
@@ -141,23 +151,23 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float dxldy_f = ( fabs(y3-y2) < MIN_FLOAT ) ? 0 : ( ( x3 - x2 ) / ( y3 - y2 ) );
 
     /* calculate inverse slopes in 16.16 fixed format */
-    uint32_t dxhdy = dxhdy_f * to_fixed_16_16;
-    uint32_t dxmdy = dxmdy_f * to_fixed_16_16;
-    uint32_t dxldy = dxldy_f * to_fixed_16_16;
+    uint32_t dxhdy = float_to_fixed(dxhdy_f);
+    uint32_t dxmdy = float_to_fixed(dxmdy_f);
+    uint32_t dxldy = float_to_fixed(dxldy_f);
 
     /* calculate X edge coefficients in 16.16 fixed format */
-    uint32_t xh = (x1) * to_fixed_16_16;
-    uint32_t xm = (x1) * to_fixed_16_16;
-    uint32_t xl = (x2) * to_fixed_16_16;
+    uint32_t xh = float_to_fixed(x1);
+    uint32_t xm = float_to_fixed(x1);
+    uint32_t xl = float_to_fixed(x2);
 
     /* determine the winding of the triangle */
     int32_t winding = ( x1 * y2 - x2 * y1 ) + ( x2 * y3 - x3 * y2 ) + ( x3 * y1 - x1 * y3 );
     uint32_t flip = (winding > 0 ? 1 : 0 );
 
-    uint32_t r = c1[0]*to_fixed_16_16;
-    uint32_t g = c1[1]*to_fixed_16_16;
-    uint32_t b = c1[2]*to_fixed_16_16;
-    uint32_t a = c1[3]*to_fixed_16_16;
+    uint32_t r = float_to_fixed(c1[0]);
+    uint32_t g = float_to_fixed(c1[1]);
+    uint32_t b = float_to_fixed(c1[2]);
+    uint32_t a = float_to_fixed(c1[3]);
 
     uint32_t drde;
     uint32_t dgde;
@@ -182,7 +192,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float inv_z2 = (fabs(z2) < MIN_FLOAT) ? 65532.0f : (1.0f / z2);
     float inv_z3 = (fabs(z3) < MIN_FLOAT) ? 65532.0f : (1.0f / z3);
 
-    uint32_t iz1 = ((uint32_t)(inv_z1 * to_fixed_16_16) << 12);
+    uint32_t iz1 = ((uint32_t)float_to_fixed(inv_z1) << 12);
     
     {
         float u2,v2,w2,u3,v3,w3,u4,v4,w4;
@@ -190,38 +200,38 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         barycentric(x1,y1+1,x1,y1,x2,y2,x3,y3, &u3, &v3, &w3);
         barycentric(x1+dxhdy_f,y1+1,x1,y1,x2,y2,x3,y3, &u4, &v4, &w4);
         
-        drdx = ((c1[0]*u2 + c2[0]*v2 + c3[0]*w2) - c1[0]) * to_fixed_16_16;
-        dgdx = ((c1[1]*u2 + c2[1]*v2 + c3[1]*w2) - c1[1]) * to_fixed_16_16;
-        dbdx = ((c1[2]*u2 + c2[2]*v2 + c3[2]*w2) - c1[2]) * to_fixed_16_16;
-        dadx = ((c1[3]*u2 + c2[3]*v2 + c3[3]*w2) - c1[3]) * to_fixed_16_16;
+        drdx = float_to_fixed((c1[0]*u2 + c2[0]*v2 + c3[0]*w2) - c1[0]);
+        dgdx = float_to_fixed((c1[1]*u2 + c2[1]*v2 + c3[1]*w2) - c1[1]);
+        dbdx = float_to_fixed((c1[2]*u2 + c2[2]*v2 + c3[2]*w2) - c1[2]);
+        dadx = float_to_fixed((c1[3]*u2 + c2[3]*v2 + c3[3]*w2) - c1[3]);
 
-        drdy = ((c1[0]*u3 + c2[0]*v3 + c3[0]*w3) - c1[0]) * to_fixed_16_16;
-        dgdy = ((c1[1]*u3 + c2[1]*v3 + c3[1]*w3) - c1[1]) * to_fixed_16_16;
-        dbdy = ((c1[2]*u3 + c2[2]*v3 + c3[2]*w3) - c1[2]) * to_fixed_16_16;
-        dady = ((c1[3]*u3 + c2[3]*v3 + c3[3]*w3) - c1[3]) * to_fixed_16_16;
+        drdy = float_to_fixed((c1[0]*u3 + c2[0]*v3 + c3[0]*w3) - c1[0]);
+        dgdy = float_to_fixed((c1[1]*u3 + c2[1]*v3 + c3[1]*w3) - c1[1]);
+        dbdy = float_to_fixed((c1[2]*u3 + c2[2]*v3 + c3[2]*w3) - c1[2]);
+        dady = float_to_fixed((c1[3]*u3 + c2[3]*v3 + c3[3]*w3) - c1[3]);
 
-        drde = ((c1[0]*u4 + c2[0]*v4 + c3[0]*w4) - c1[0]) * to_fixed_16_16;
-        dgde = ((c1[1]*u4 + c2[1]*v4 + c3[1]*w4) - c1[1]) * to_fixed_16_16;
-        dbde = ((c1[2]*u4 + c2[2]*v4 + c3[2]*w4) - c1[2]) * to_fixed_16_16;
-        dade = ((c1[3]*u4 + c2[3]*v4 + c3[3]*w4) - c1[3]) * to_fixed_16_16;
+        drde = float_to_fixed((c1[0]*u4 + c2[0]*v4 + c3[0]*w4) - c1[0]);
+        dgde = float_to_fixed((c1[1]*u4 + c2[1]*v4 + c3[1]*w4) - c1[1]);
+        dbde = float_to_fixed((c1[2]*u4 + c2[2]*v4 + c3[2]*w4) - c1[2]);
+        dade = float_to_fixed((c1[3]*u4 + c2[3]*v4 + c3[3]*w4) - c1[3]);
 
         /* Calculate tex values */
-        s = t1[0] * to_fixed_16_16;
-        t = t1[1] * to_fixed_16_16;
+        s = float_to_fixed(t1[0]);
+        t = float_to_fixed(t1[1]);
 
-        dsdx = ((t1[0]*u2 + t2[0]*v2 + t3[0]*w2) - t1[0]) * to_fixed_16_16;
-        dtdx = ((t1[1]*u2 + t2[1]*v2 + t3[1]*w2) - t1[1]) * to_fixed_16_16;
+        dsdx = float_to_fixed((t1[0]*u2 + t2[0]*v2 + t3[0]*w2) - t1[0]);
+        dtdx = float_to_fixed((t1[1]*u2 + t2[1]*v2 + t3[1]*w2) - t1[1]);
 
-        dsdy = ((t1[0]*u3 + t2[0]*v3 + t3[0]*w3) - t1[0]) * to_fixed_16_16;
-        dtdy = ((t1[1]*u3 + t2[1]*v3 + t3[1]*w3) - t1[1]) * to_fixed_16_16;
+        dsdy = float_to_fixed((t1[0]*u3 + t2[0]*v3 + t3[0]*w3) - t1[0]);
+        dtdy = float_to_fixed((t1[1]*u3 + t2[1]*v3 + t3[1]*w3) - t1[1]);
 
-        dsde = ((t1[0]*u4 + t2[0]*v4 + t3[0]*w4) - t1[0]) * to_fixed_16_16;
-        dtde = ((t1[1]*u4 + t2[1]*v4 + t3[1]*w4) - t1[1]) * to_fixed_16_16;
+        dsde = float_to_fixed((t1[0]*u4 + t2[0]*v4 + t3[0]*w4) - t1[0]);
+        dtde = float_to_fixed((t1[1]*u4 + t2[1]*v4 + t3[1]*w4) - t1[1]);
 
         /* Calculate depth values */
-        dzdx = ((uint32_t)(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1) * to_fixed_16_16) << 12);
-        dzdy = ((uint32_t)(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1) * to_fixed_16_16) << 12);
-        dzde = ((uint32_t)(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1) * to_fixed_16_16) << 12);
+        dzdx = ((uint32_t)float_to_fixed(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1)) << 12);
+        dzdy = ((uint32_t)float_to_fixed(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1)) << 12);
+        dzde = ((uint32_t)float_to_fixed(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1)) << 12);
     }
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
