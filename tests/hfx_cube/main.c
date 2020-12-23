@@ -173,11 +173,12 @@ int main(void)
         // Queue the next frame up
         hfx_clear(state, HFX_COLOR_BUFFER_BIT | HFX_DEPTH_BUFFER_BIT);
         hfx_load_identity(state);
-        hfx_scale_f(state, 320.0f/2.0f, 240.0f/2.0f, 1.0f/2.0f);
-        hfx_translate_f(state, 1.0f, 1.0f, 1.0f);
+        hfx_scale_f(state, 320.0f/2.0f, -240.0f/2.0f, -1.0f/2.0f);
+        hfx_translate_f(state, 1.0f, -1.0f, -1.0f);
         //hfx_translate_f(state, 0.0f, 0.0f, 0.5f);
         hfx_rotate_f(state, angle, 0.58f, 0.58f, 0.58f);
         hfx_scale_f(state, 0.5f, 0.5f, 0.5f);
+        //hfx_scale_f(state, 1, -1, 1);
         hfx_draw_arrays(state, HFX_TRIANGLES, 0, 36);
 
         hfx_wait_for_idle(state);
