@@ -91,6 +91,14 @@ static uint32_t float_to_fixed(float a)
 
 uint32_t tri_draw_mode(hfx_state *state)
 {
+    /*
+    TRI:            1000
+    SHADE:          1100
+    DEPTH:          1001
+    TEX:            1010
+    SHADE_DEPTH:    1101
+    */
+
     uint32_t mode = 0xc;
 
     if(state->caps.depth_test)
@@ -212,7 +220,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     float inv_z2 = (fabs(z2) < MIN_FLOAT) ? 65532.0f : (1.0f / z2);
     float inv_z3 = (fabs(z3) < MIN_FLOAT) ? 65532.0f : (1.0f / z3);
 
-    uint32_t iz1 = ((uint32_t)float_to_fixed(inv_z1) << 12);
+    uint32_t iz1 = ((uint32_t)float_to_fixed(inv_z1)) << 10;
     
     {
         float u2,v2,w2,u3,v3,w3,u4,v4,w4;
@@ -249,9 +257,9 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         dtde = float_to_fixed((t1[1]*u4 + t2[1]*v4 + t3[1]*w4) - t1[1]);
 
         /* Calculate depth values */
-        dzdx = ((uint32_t)float_to_fixed(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1)) << 12);
-        dzdy = ((uint32_t)float_to_fixed(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1)) << 12);
-        dzde = ((uint32_t)float_to_fixed(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1)) << 12);
+        dzdx = ((uint32_t)float_to_fixed(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1))) << 10;
+        dzdy = ((uint32_t)float_to_fixed(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1))) << 10;
+        dzde = ((uint32_t)float_to_fixed(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1))) << 10;
     }
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
