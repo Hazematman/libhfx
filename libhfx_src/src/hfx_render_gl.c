@@ -121,25 +121,26 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2]={0}, t2[2]={0}, t3[2]={0};
     float tex_width = state->cur_tex->width*32.0f - 1.0f;
     float tex_height= state->cur_tex->height*32.0f - 1.0f;
+    uint32_t vs = state->vertex_size;
 
     hfx_set_mode(state);
 
     for(int i = start_tri; i < num_tri; i++)
     {
-        v1[0] = state->vertex_pointer[i*3*state->vertex_size+0];
-        v1[1] = state->vertex_pointer[i*3*state->vertex_size+1];
-        v1[2] = state->vertex_pointer[i*3*state->vertex_size+2];
-        v1[3] = 1.0f;
+        v1[0] = state->vertex_pointer[i*vs*state->vertex_size+0];
+        v1[1] = state->vertex_pointer[i*vs*state->vertex_size+1];
+        v1[2] = state->vertex_pointer[i*vs*state->vertex_size+2];
+        v1[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+3];
 
-        v2[0] = state->vertex_pointer[i*3*state->vertex_size+3];
-        v2[1] = state->vertex_pointer[i*3*state->vertex_size+4];
-        v2[2] = state->vertex_pointer[i*3*state->vertex_size+5];
-        v2[3] = 1.0f;
+        v2[0] = state->vertex_pointer[i*vs*state->vertex_size+vs+0];
+        v2[1] = state->vertex_pointer[i*vs*state->vertex_size+vs+1];
+        v2[2] = state->vertex_pointer[i*vs*state->vertex_size+vs+2];
+        v2[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+vs+3];
 
-        v3[0] = state->vertex_pointer[i*3*state->vertex_size+6];
-        v3[1] = state->vertex_pointer[i*3*state->vertex_size+7];
-        v3[2] = state->vertex_pointer[i*3*state->vertex_size+8];
-        v3[3] = 1.0f;
+        v3[0] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+0];
+        v3[1] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+1];
+        v3[2] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+2];
+        v3[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+vs*2+3];
 
         c1[0] = (float)state->color_pointer[i*3*state->color_size+0];
         c1[1] = (float)state->color_pointer[i*3*state->color_size+1];
