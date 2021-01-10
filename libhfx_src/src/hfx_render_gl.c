@@ -129,17 +129,17 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     {
         v1[0] = state->vertex_pointer[i*vs*state->vertex_size+0];
         v1[1] = state->vertex_pointer[i*vs*state->vertex_size+1];
-        v1[2] = state->vertex_pointer[i*vs*state->vertex_size+2];
+        v1[2] = vs < 3 ? 0.0f : state->vertex_pointer[i*vs*state->vertex_size+2];
         v1[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+3];
 
         v2[0] = state->vertex_pointer[i*vs*state->vertex_size+vs+0];
         v2[1] = state->vertex_pointer[i*vs*state->vertex_size+vs+1];
-        v2[2] = state->vertex_pointer[i*vs*state->vertex_size+vs+2];
+        v2[2] = vs < 3 ? 0.0f : state->vertex_pointer[i*vs*state->vertex_size+vs+2];
         v2[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+vs+3];
 
         v3[0] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+0];
         v3[1] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+1];
-        v3[2] = state->vertex_pointer[i*vs*state->vertex_size+vs*2+2];
+        v3[2] = vs < 3 ? 0.0f : state->vertex_pointer[i*vs*state->vertex_size+vs*2+2];
         v3[3] = vs < 4 ? 1.0f : state->vertex_pointer[i*vs*state->vertex_size+vs*2+3];
 
         c1[0] = (float)state->color_pointer[i*3*state->color_size+0];
