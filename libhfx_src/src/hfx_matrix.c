@@ -4,6 +4,8 @@
 #include <math.h>
 #include <hfx_int.h>
 
+#define TO_RAD(x) ((x)*(M_PI)/180.0f)
+
 void hfx_matrix_multiply(hfx_state *state, float *a, float *b, float *result)
 {
     float temp[16] = {0};
@@ -99,7 +101,7 @@ void hfx_rotate_f(hfx_state *state, float angle, float x, float y, float z)
     float axis[4] = {0};
     float normalized_axis[4];
     float result[16];
-    float angle_rad = (angle * M_PI) / 180;
+    float angle_rad = TO_RAD(angle);
     float c = cos(angle_rad);
     float s = sin(angle_rad);
 
@@ -155,6 +157,20 @@ void hfx_ortho_f(hfx_state *state, float left, float right, float top, float bot
     result[13] = -(top + bottom) / (top - bottom);
     result[14] = -(far + near) / (far - near);
     result[15] = 1.0f;
+
+    hfx_matrix_multiply(state, state->model_matrix, result, state->model_matrix);
+}
+
+void hfx_persp_f(hfx_state *state, float fovy, float aspect, float znear, float zfar)
+{
+    float result[16] = {0};
+    float tan_half_fov = tan(TO_RAD(fovy) / 2.0f);
+
+    result[0] = 1.0f / (aspect * tan_half_fov);
+    result[5] = 1.0f / tan_half_fov;
+    result[10] = (zfar + znear) / (zfar - znear);
+    result[11] = -1.0f;
+    result[14] = (2.0f * zfar * znear) / (zfar - znear);
 
     hfx_matrix_multiply(state, state->model_matrix, result, state->model_matrix);
 }

@@ -3,6 +3,8 @@
 #include <hfx_int.h>
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
+#include <math.h>
+#include <stdio.h>
 
 #define RGBA8_TO_RGBA5551(r,g,b,a) ((((r)&0xf8)<<8) | (((g)&0xf8)<<4) | (((b)&0xf8)>>2) | ((a)&0x01))
 #define RGBA8_TO_UINT(r,g,b,a)  ((((uint64_t)(r)&0xff)<<24) | (((uint64_t)(g)&0xff)<<16) | (((uint64_t)(b)&0xff)<<8) | ((uint64_t)(a)&0xff))
@@ -203,13 +205,159 @@ void hfx_clear(hfx_state *state, uint32_t bits)
     hfx_cmd_rdp(state, index, cmds);
 }
 
+typedef struct hfx_vert
+{
+    float pos[4];
+    float col[4];
+    float tex[2];
+} hfx_vert;
+
+float lerp(float a, float b, float t)
+{
+    return a + t*(b - a);
+}
+
+hfx_vert hfx_lerp_vert(hfx_vert *a, hfx_vert *b, float t)
+{
+    hfx_vert out;
+    out.pos[0] = lerp(a->pos[0], b->pos[0], t);
+    out.pos[1] = lerp(a->pos[1], b->pos[1], t);
+    out.pos[2] = lerp(a->pos[2], b->pos[2], t);
+    out.pos[3] = lerp(a->pos[3], b->pos[3], t);
+    out.col[0] = lerp(a->col[0], b->col[0], t);
+    out.col[1] = lerp(a->col[1], b->col[1], t);
+    out.col[2] = lerp(a->col[2], b->col[2], t);
+    out.col[3] = lerp(a->col[3], b->col[3], t);
+    out.tex[0] = lerp(a->tex[0], b->tex[0], t);
+    out.tex[1] = lerp(a->tex[1], b->tex[1], t);
+
+    return out;
+}
+
+hfx_vert hfx_make_vert(float *pos, float *col, float *tex)
+{
+    hfx_vert output_vert;
+    output_vert.pos[0] = pos[0];
+    output_vert.pos[1] = pos[1];
+    output_vert.pos[2] = pos[2];
+    output_vert.pos[3] = pos[3];
+    output_vert.col[0] = col[0];
+    output_vert.col[1] = col[1];
+    output_vert.col[2] = col[2];
+    output_vert.col[3] = col[3];
+    output_vert.tex[0] = tex[0];
+    output_vert.tex[1] = tex[1];
+
+    return output_vert;
+}
+
+void hfx_print_vert(hfx_vert *vert)
+{
+    printf("pos: %f %f %f %f\ncol %f %f %f %f\ntex %f %f\n",
+           vert->pos[0], vert->pos[1], vert->pos[2], vert->pos[3],
+           vert->col[0], vert->col[1], vert->col[2], vert->col[3],
+           vert->tex[0], vert->tex[1]);
+}
+
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     float v1_t[4], v2_t[4], v3_t[4];
+    hfx_vert verts[3];
+    hfx_vert output_verts[5];
+    bool good[3];
 
     hfx_matrix_vector_multiply(state, state->model_matrix, v1, v1_t);
     hfx_matrix_vector_multiply(state, state->model_matrix, v2, v2_t);
     hfx_matrix_vector_multiply(state, state->model_matrix, v3, v3_t);
 
-    hfx_render_tri_f(state, v1_t, v2_t, v3_t, vc1, vc2, vc3, vt1, vt2, vt3);
+    verts[0] = hfx_make_vert(v1_t, vc1, vt1);
+    verts[1] = hfx_make_vert(v2_t, vc2, vt2);
+    verts[2] = hfx_make_vert(v3_t, vc3, vt3);
+
+    printf("Drawing:\n");
+    for(int i=0; i < 3; i++)
+    {
+        hfx_print_vert(&verts[i]);
+    }
+
+    for(int i=0; i < 3; i++)
+    {
+        float *cur_vert = &verts[i].pos[0];
+        good[i] = (cur_vert[2] >= -cur_vert[3]) && (cur_vert[2] <= cur_vert[3]);
+    }
+
+    int prev_index = 2;
+    int prev2_index = 1;
+    hfx_vert *prev_vert = &verts[prev_index];
+    hfx_vert *prev2_vert = &verts[prev2_index];
+    int index = 0;
+    for(int i=0; i < 3; i++)
+    {
+        hfx_vert *cur_vert = &verts[i];
+        if(!good[i])
+        {
+            if(good[prev_index])
+            {
+                float t1 = (prev_vert->pos[3] - prev_vert->pos[2]) / 
+                          ((prev_vert->pos[3] - prev_vert->pos[2]) - (cur_vert->pos[3] - cur_vert->pos[2]));
+                /* Add t1 interpolated vert */
+                output_verts[index++] = hfx_lerp_vert(prev_vert, cur_vert, t1);
+            }
+
+            if(good[prev2_index])
+            {
+                float t2 = (prev2_vert->pos[3] - prev2_vert->pos[2]) / 
+                          ((prev2_vert->pos[3] - prev2_vert->pos[2]) - (cur_vert->pos[3] - cur_vert->pos[2]));
+                /* Add t2 interpolated vert */
+                output_verts[index++] = hfx_lerp_vert(prev2_vert, cur_vert, t2);
+            }
+        }
+        else
+        {
+            output_verts[index++] = *cur_vert;
+        }
+
+        prev2_vert = prev_vert;
+        prev_vert = cur_vert;
+        prev2_index = prev_index;
+        prev_index = i;
+    }
+
+    int num_tri = index - 2;
+
+    printf("Num triangles with index %d %d\n", num_tri, index);
+
+    index = 2;
+
+    if(num_tri > 0)
+    {
+        output_verts[0].pos[0] = ((output_verts[0].pos[0]/
+                                   output_verts[0].pos[3])+1)*(320.0f/2.0f);
+        output_verts[0].pos[1] = ((output_verts[0].pos[1]/
+                                   output_verts[0].pos[3])-1)*(-240.0f/2.0f);
+        output_verts[0].pos[2] = ((output_verts[0].pos[2]/
+                                   output_verts[0].pos[3])-1)*(-1.0f/2.0f);
+        
+        output_verts[index-1].pos[0] = ((output_verts[index-1].pos[0]/
+                                         output_verts[index-1].pos[3])+1)*(320.0f/2.0f);
+        output_verts[index-1].pos[1] = ((output_verts[index-1].pos[1]/
+                                         output_verts[index-1].pos[3])-1)*(-240.0f/2.0f);
+        output_verts[index-1].pos[2] = ((output_verts[index-1].pos[2]/
+                                         output_verts[index-1].pos[3])-1)*(-1.0f/2.0f);
+
+        for(int i=0; i < num_tri; i++)
+        {
+            output_verts[index].pos[0] = ((output_verts[index].pos[0]/
+                                           output_verts[index].pos[3])+1)*(320.0f/2.0f);
+            output_verts[index].pos[1] = ((output_verts[index].pos[1]/
+                                           output_verts[index].pos[3])-1)*(-240.0f/2.0f);
+            output_verts[index].pos[2] = ((output_verts[index].pos[2]/
+                                           output_verts[index].pos[3])-1)*(-1.0f/2.0f);
+
+            hfx_render_tri_f(state, output_verts[0].pos, output_verts[index-1].pos, output_verts[index].pos, 
+                                    output_verts[0].col, output_verts[index-1].col, output_verts[index].col, 
+                                    output_verts[0].tex, output_verts[index-1].tex, output_verts[index].tex);
+            index += 1;
+        }
+    }
 }

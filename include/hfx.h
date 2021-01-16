@@ -65,6 +65,7 @@ void hfx_translate_f(hfx_state *state, float x, float y, float z);
 void hfx_rotate_f(hfx_state *state, float angle, float x, float y, float z);
 void hfx_scale_f(hfx_state *state, float sx, float sy, float sz);
 void hfx_ortho_f(hfx_state *state, float left, float right, float top, float bottom, float near, float far);
+void hfx_persp_f(hfx_state *state, float fovy, float aspect, float znear, float zfar);
 void hfx_mult_matrix_f(hfx_state *state, float *mat);
 
 void hfx_vertex_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data);

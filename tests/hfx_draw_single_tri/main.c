@@ -19,8 +19,8 @@ static char pbuf[256];
 float v1[] =
 {
     0.0f, 0.0f, 0.0f,
-    100.0f, 0.0f, 0.0f,
-    100.0f / 2.0f, 100.0f, 0.0f,
+    0.5f, 0.0f, 0.0f,
+    0.5f / 2.0f, 0.5f, 0.0f,
 };
 
 uint8_t vc1[] =
@@ -67,7 +67,7 @@ int main(void)
         // Queue the next frame up
         hfx_clear(state, HFX_COLOR_BUFFER_BIT|HFX_DEPTH_BUFFER_BIT);
         hfx_load_identity(state);
-        hfx_translate_f(state, 100.0f, 100.0f, 0.0f);
+        //hfx_translate_f(state, 100.0f, 100.0f, 0.0f);
         hfx_rotate_f(state, angle, 0, 0, 1);
 
         hfx_draw_arrays(state, HFX_TRIANGLES, 0, 3);

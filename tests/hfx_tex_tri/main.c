@@ -20,11 +20,11 @@ static hfx_state *state;
 float v1[] =
 {
     0.0f, 0.0f, 0.0f,
-    100.0f, 0.0f, 0.0f,
-    100.0f, 100.0f, 0.0f,
+    0.5f, 0.0f, 0.0f,
+    0.5f, 0.5f, 0.0f,
     0.0f, 0.0f, 0.0f,
-    100.0f, 100.0f, 0.0f,
-    0.0f, 100.0f, 0.0f,
+    0.5f, 0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f,
 };
 
 float t1[] =
@@ -109,8 +109,6 @@ int main(void)
     hfx_tex_coord_pointer(state, 2, HFX_FLOAT, 0, t1);
 
     hfx_clear_color_f(state, 0.2f, 0.0f, 0.9f, 1.0f);
-    //hfx_clear_color_f(state, 1.0f, 1.0f, 1.0f, 1.0f);
-
 
     float angle = 0.0;
     while(1)
@@ -121,15 +119,10 @@ int main(void)
             angle += 1.0f;
         done = 1;
 
-        // This angle causes graphical glitch
-        //angle = 240.0f;
-
         // Queue the next frame up
         hfx_clear(state, HFX_COLOR_BUFFER_BIT|HFX_DEPTH_BUFFER_BIT);
         hfx_load_identity(state);
-        hfx_translate_f(state, 150.0f, 100.0f, 0.0f);
         hfx_rotate_f(state, angle, 0, 0, 1);
-        hfx_translate_f(state, -50.0f, -50.0f, 0.0f);
         hfx_draw_arrays(state, HFX_TRIANGLES, 0, 6);
 
         hfx_swap_buffers(state);
