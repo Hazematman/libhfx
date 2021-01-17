@@ -251,14 +251,6 @@ hfx_vert hfx_make_vert(float *pos, float *col, float *tex)
     return output_vert;
 }
 
-void hfx_print_vert(hfx_vert *vert)
-{
-    printf("pos: %f %f %f %f\ncol %f %f %f %f\ntex %f %f\n",
-           vert->pos[0], vert->pos[1], vert->pos[2], vert->pos[3],
-           vert->col[0], vert->col[1], vert->col[2], vert->col[3],
-           vert->tex[0], vert->tex[1]);
-}
-
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3)
 {
     float v1_t[4], v2_t[4], v3_t[4];
@@ -273,12 +265,6 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
     verts[0] = hfx_make_vert(v1_t, vc1, vt1);
     verts[1] = hfx_make_vert(v2_t, vc2, vt2);
     verts[2] = hfx_make_vert(v3_t, vc3, vt3);
-
-    printf("Drawing:\n");
-    for(int i=0; i < 3; i++)
-    {
-        hfx_print_vert(&verts[i]);
-    }
 
     for(int i=0; i < 3; i++)
     {
@@ -324,8 +310,6 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
     }
 
     int num_tri = index - 2;
-
-    printf("Num triangles with index %d %d\n", num_tri, index);
 
     index = 2;
 

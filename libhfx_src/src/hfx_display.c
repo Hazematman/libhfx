@@ -45,8 +45,6 @@ void hfx_get_display(hfx_state *state)
 
     state->display = disp;
     state->display_ptr = (void*)(0x1ffffff & (uintptr_t)get_disp_buffer(state->display));
-    printf("Display is %p\n", get_disp_buffer(state->display));
-    printf("Safe displays are %p %p\n", get_disp_buffer(1), get_disp_buffer(2));
 }
 
 void hfx_cmd_register_display(hfx_state *state)
