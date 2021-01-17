@@ -30,6 +30,7 @@ src_files = [
     'src/hfx_matrix.c',
     'src/hfx_state.c',
     'src/hfx_texture.c',
+    'src/hfx_dispatch.c',
 ]
 
 ucode_src_dir = './ucode_src/'
@@ -163,7 +164,11 @@ opengl_c_args = [
     '-I'+meson.source_root()+'/include'
 ]
 
+
 # Build OpenGL example platform
+# current disable OpenGL example platform
+'''
 executable('cube', opengl_src,
             c_args : opengl_c_args,
             link_args : ['-lSDL2', '-lGL', '-lGLEW', '-lm'])
+'''

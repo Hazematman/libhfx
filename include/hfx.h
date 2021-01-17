@@ -31,6 +31,7 @@ typedef struct hfx_state hfx_state;
 typedef int32_t HFXfixed;
 
 hfx_state *hfx_init();
+void libhfx_init(void);
 void hfx_register_rsp_int(hfx_state *state, void (*func_ptr)());
 void hfx_restart_rsp(hfx_state *state);
 void hfx_wait_for_idle(hfx_state *state);
@@ -42,18 +43,7 @@ HFXfixed hfx_subx(HFXfixed a, HFXfixed b);
 HFXfixed hfx_mulx(HFXfixed a, HFXfixed b);
 HFXfixed hfx_divx(HFXfixed a, HFXfixed b);
 
-
-void hfxEnable(hfx_state *state, uint32_t cap);
 void hfx_enable(hfx_state *state, uint32_t cap);
-void hfxClearColor(hfx_state *state, float r, float g, float b, float a);
-void hfxClear(hfx_state *state, uint32_t bits);
-void hfxVertexPointer(hfx_state *state, int32_t size, uint32_t type, uint32_t stride, void *pointer);
-void hfxColorPointer(hfx_state *state, int32_t size, uint32_t type, uint32_t stride, void *pointer);
-void hfxLoadIdentity(hfx_state *state);
-void hfxTranslatef(hfx_state *state, float x, float y, float z);
-void hfxRotatef(hfx_state *state, float angle, float x, float y, float z);
-void hfxScalef(hfx_state *state, float x, float y, float z);
-void hfxDrawArrays(hfx_state *state, uint32_t mode, uint32_t first, uint32_t count);
 
 void hfx_set_scissor(hfx_state *state, uint32_t xh, uint32_t yh, uint32_t xl, uint32_t yl);
 void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc1, float *vc2, float *vc3, float *vt1, float *vt2, float *vt3);
