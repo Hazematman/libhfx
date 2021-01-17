@@ -44,6 +44,9 @@ test_dict = {
     'hfx_persp' : [
         'main.c'
     ],
+    'hfx_persp_tex' : [
+        'main.c'
+    ],
 }
 
 # Change compiler flags here

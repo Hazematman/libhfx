@@ -123,10 +123,10 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t tri_mode = 0;
     const float to_fixed_11_2 = 4.0f;
     const float to_fixed_16_16 = 65536.0f;
-    float temp_x, temp_y, temp_z;
-    float x1 = v1[0], y1 = v1[1], z1 = v1[2];
-    float x2 = v2[0], y2 = v2[1], z2 = v2[2];
-    float x3 = v3[0], y3 = v3[1], z3 = v3[2];
+    float temp_x, temp_y, temp_z, temp_w;
+    float x1 = v1[0], y1 = v1[1], z1 = v1[2], w1 = v1[3];
+    float x2 = v2[0], y2 = v2[1], z2 = v2[2], w2 = v2[3];
+    float x3 = v3[0], y3 = v3[1], z3 = v3[2], w3 = v3[3];
 
     float *c1 = vc1, *c2 = vc2, *c3 = vc3, *temp_c;
     float *t1 = vt1, *t2 = vt2, *t3 = vt3, *temp_t;
@@ -136,28 +136,31 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     /* sort vertices by Y ascending to find the major, mid and low edges */
     if( y1 > y2 ) 
     { 
-        temp_x = x2, temp_y = y2; temp_z = z2 ; temp_c = c2; temp_t = t2;
+        temp_x = x2, temp_y = y2; temp_z = z2 ; temp_c = c2; temp_t = t2; temp_w = w2;
         y2 = y1; y1 = temp_y; 
         x2 = x1; x1 = temp_x;
         z2 = z1; z1 = temp_z;
+        w2 = w1; w1 = temp_w;
         c2 = c1; c1 = temp_c;
         t2 = t1; t1 = temp_t;
     }
     if( y2 > y3 ) 
     { 
-        temp_x = x3, temp_y = y3; temp_z = z3; temp_c = c3; temp_t = t3;
+        temp_x = x3, temp_y = y3; temp_z = z3; temp_c = c3; temp_t = t3; temp_w = w3;
         y3 = y2; y2 = temp_y; 
         x3 = x2; x2 = temp_x;
         z3 = z2; z2 = temp_z; 
+        w3 = w2; w2 = temp_w;
         c3 = c2; c2 = temp_c;
         t3 = t2; t2 = temp_t;
     }
     if( y1 > y2 ) 
     { 
-        temp_x = x2, temp_y = y2; temp_z = z2; temp_c = c2; temp_t = t2;
+        temp_x = x2, temp_y = y2; temp_z = z2; temp_c = c2; temp_t = t2; temp_w = w2;
         y2 = y1; y1 = temp_y; 
         x2 = x1; x1 = temp_x;
         z2 = z1; z1 = temp_z;
+        w2 = w1; w1 = temp_w;
         c2 = c1; c1 = temp_c;
         t2 = t1; t1 = temp_t;
     }
@@ -214,13 +217,23 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
     uint32_t dzdx;
     uint32_t dzdy;
 
+    uint32_t dwde;
+    uint32_t dwdx;
+    uint32_t dwdy;
+
     uint32_t s, t, dsdx, dtdx, dsde, dtde, dsdy, dtdy;
 
     float inv_z1 = (fabs(z1) < MIN_FLOAT) ? 65532.0f : (1.0f / z1);
     float inv_z2 = (fabs(z2) < MIN_FLOAT) ? 65532.0f : (1.0f / z2);
     float inv_z3 = (fabs(z3) < MIN_FLOAT) ? 65532.0f : (1.0f / z3);
 
+    float inv_w1 = (fabs(w1) < MIN_FLOAT) ? 65532.0f : (1.0f / w1);
+    float inv_w2 = (fabs(w2) < MIN_FLOAT) ? 65532.0f : (1.0f / w2);
+    float inv_w3 = (fabs(w3) < MIN_FLOAT) ? 65532.0f : (1.0f / w3);
+
     uint32_t iz1 = ((uint32_t)float_to_fixed(inv_z1)) << 10;
+
+    uint32_t iw1 = ((uint32_t)float_to_fixed(inv_w1)) << 12;
     
     {
         float u2,v2,w2,u3,v3,w3,u4,v4,w4;
@@ -260,6 +273,11 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
         dzdx = ((uint32_t)float_to_fixed(((inv_z1*u2 + inv_z2*v2 + inv_z3*w2) - inv_z1))) << 10;
         dzdy = ((uint32_t)float_to_fixed(((inv_z1*u3 + inv_z2*v3 + inv_z3*w3) - inv_z1))) << 10;
         dzde = ((uint32_t)float_to_fixed(((inv_z1*u4 + inv_z2*v4 + inv_z3*w4) - inv_z1))) << 10;
+
+        /* Calculate w-depth values */
+        dwdx = ((uint32_t)float_to_fixed(((inv_w1*u2 + inv_w2*v2 + inv_w3*w2) - inv_w1))) << 12;
+        dwdy = ((uint32_t)float_to_fixed(((inv_w1*u3 + inv_w2*v3 + inv_w3*w3) - inv_w1))) << 12;
+        dwde = ((uint32_t)float_to_fixed(((inv_w1*u4 + inv_w2*v4 + inv_w3*w4) - inv_w1))) << 12;
     }
 
     HFX_RDP_PKT_TRI_NON_SHADE(edge_coef,
@@ -282,7 +300,7 @@ void hfx_render_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *
                                      drde, dgde, dbde, dade);
     if(state->caps.texture_2d)
     {
-        HFX_RDP_PKT_TRI_TEX(edge_coef, s, t, iz1, dsdx, dtdx, dzdx, dsde, dtde, dzde, dsdy, dtdy, dzdy);
+        HFX_RDP_PKT_TRI_TEX(edge_coef, s, t, iw1, dsdx, dtdx, dwdx, dsde, dtde, dwde, dsdy, dtdy, dwdy);
     }
 
     if(state->caps.depth_test)

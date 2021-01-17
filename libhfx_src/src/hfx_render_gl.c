@@ -86,7 +86,8 @@ void hfx_set_mode(hfx_state *state)
         {
             combine_mode_type = HFX_RDP_CMD_SET_COMBINE_MODE_TEXEL0;
             mode |= HFX_RDP_CMD_SET_MODE_BI_LERP_0 |
-                    HFX_RDP_CMD_SET_MODE_DETAIL_TEX_EN;
+                    HFX_RDP_CMD_SET_MODE_DETAIL_TEX_EN |
+                    HFX_RDP_CMD_SET_MODE_PERSP_TEX_EN;
         }
 
         // TODO set the rest of this state based on the graphics state
@@ -121,8 +122,8 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2]={0}, t2[2]={0}, t3[2]={0};
-    float tex_width = state->cur_tex->width*32.0f - 1.0f;
-    float tex_height= state->cur_tex->height*32.0f - 1.0f;
+    float tex_width = state->cur_tex->width*4.0f - 1.0f;
+    float tex_height= state->cur_tex->height*4.0f - 1.0f;
     uint32_t vs = state->vertex_size;
 
     hfx_set_mode(state);
@@ -161,8 +162,9 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 
         if(state->caps.texture_2d)
         {
-            t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0]*tex_width;
-            t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1]*tex_height;
+            printf("TEXTURE WIDTH %f %f\n", tex_width, tex_height);
+            t1[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+0]*tex_height;
+            t1[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+1]*tex_width;
 
             t2[0] = state->tex_coord_pointer[i*3*state->tex_coord_size+2]*tex_width;
             t2[1] = state->tex_coord_pointer[i*3*state->tex_coord_size+3]*tex_height;
@@ -315,19 +317,26 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
 
     if(num_tri > 0)
     {
+        float w_depth;
         output_verts[0].pos[0] = ((output_verts[0].pos[0]/
                                    output_verts[0].pos[3])+1)*(320.0f/2.0f);
         output_verts[0].pos[1] = ((output_verts[0].pos[1]/
                                    output_verts[0].pos[3])-1)*(-240.0f/2.0f);
-        output_verts[0].pos[2] = ((output_verts[0].pos[2]/
-                                   output_verts[0].pos[3])-1)*(-1.0f/2.0f);
+        w_depth = output_verts[0].pos[2]/output_verts[0].pos[3];
+        output_verts[0].pos[2] = (w_depth-1)*(-1.0f/2.0f);
+
+        output_verts[0].tex[0] /= output_verts[0].pos[3];
+        output_verts[0].tex[1] /= output_verts[0].pos[3];
         
         output_verts[index-1].pos[0] = ((output_verts[index-1].pos[0]/
                                          output_verts[index-1].pos[3])+1)*(320.0f/2.0f);
         output_verts[index-1].pos[1] = ((output_verts[index-1].pos[1]/
                                          output_verts[index-1].pos[3])-1)*(-240.0f/2.0f);
-        output_verts[index-1].pos[2] = ((output_verts[index-1].pos[2]/
-                                         output_verts[index-1].pos[3])-1)*(-1.0f/2.0f);
+        w_depth = output_verts[index-1].pos[2]/output_verts[index-1].pos[3];
+        output_verts[index-1].pos[2] = (w_depth-1)*(-1.0f/2.0f);
+
+        output_verts[index-1].tex[0] /= output_verts[index-1].pos[3];
+        output_verts[index-1].tex[1] /= output_verts[index-1].pos[3];
 
         for(int i=0; i < num_tri; i++)
         {
@@ -335,8 +344,10 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
                                            output_verts[index].pos[3])+1)*(320.0f/2.0f);
             output_verts[index].pos[1] = ((output_verts[index].pos[1]/
                                            output_verts[index].pos[3])-1)*(-240.0f/2.0f);
-            output_verts[index].pos[2] = ((output_verts[index].pos[2]/
-                                           output_verts[index].pos[3])-1)*(-1.0f/2.0f);
+            w_depth = output_verts[index].pos[2]/output_verts[index].pos[3];
+            output_verts[index].pos[2] = (w_depth-1)*(-1.0f/2.0f);
+            output_verts[index].tex[0] /= output_verts[index].pos[3];
+            output_verts[index].tex[1] /= output_verts[index].pos[3];
 
             hfx_render_tri_f(state, output_verts[0].pos, output_verts[index-1].pos, output_verts[index].pos, 
                                     output_verts[0].col, output_verts[index-1].col, output_verts[index].col, 
