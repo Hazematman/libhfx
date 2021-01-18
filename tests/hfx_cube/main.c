@@ -154,8 +154,8 @@ int main(void)
     glEnable(GL_VERTEX_ARRAY);
     glEnable(GL_COLOR_ARRAY);
 
-    glVertexPointer(3, HFX_FLOAT, 0, cube_verts);
-    glColorPointer(4, HFX_UNSIGNED_BYTE, 0, cube_colors);
+    glVertexPointer(3, GL_FLOAT, 0, cube_verts);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, cube_colors);
 
     float angle = 0;
     while(1)
