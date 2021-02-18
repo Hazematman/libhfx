@@ -6,6 +6,8 @@
 
 #define HFX_RB_SIZE 1024
 
+#define HFX_MIN_TEXTURES 16
+
 typedef struct hfx_color {
     uint8_t r;
     uint8_t g;
@@ -17,6 +19,8 @@ typedef struct hfx_tex_info {
     uint32_t width;
     uint32_t height;
     uint32_t type;
+    void *data;
+    bool alloced;
 } hfx_tex_info;
 
 struct hfx_state {
@@ -38,7 +42,13 @@ struct hfx_state {
         bool dirty;
     } caps;
 
-    hfx_tex_info default_tex_info;
+    struct
+    {
+        uint32_t current_tex;
+        uint32_t num_texs;
+        hfx_tex_info *tex_list;
+    } tex_info;
+
     hfx_tex_info *cur_tex;
 
     uint64_t rdp_mode;

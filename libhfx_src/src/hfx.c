@@ -59,8 +59,6 @@ hfx_state *hfx_init()
     state.rb_end = 0;
     state.rb_size = HFX_RB_SIZE; // TODO probably want to make this programmable
 
-    state.cur_tex = &state.default_tex_info;
-
     /* Initalize variables in hfx state */
     hfx_rb_calc_size_mask(&state);
 
@@ -68,7 +66,10 @@ hfx_state *hfx_init()
     state.display_dim.width = 320;
     state.display_dim.height = 240;
 
-        /* Initalize capabilties */
+    /* Initalize textures */
+    hfx_init_textures(&state);
+
+    /* Initalize capabilties */
     hfx_init_caps(&state);
     hfx_set_mode(&state);
     hfx_set_scissor(&state, 0, 0, (state.display_dim.width-1)<<2, (state.display_dim.height-1)<<2);

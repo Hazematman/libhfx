@@ -121,9 +121,10 @@ void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t c
 {
     uint32_t num_tri = count / 3;
     uint32_t start_tri = start / 3;
+    hfx_tex_info *cur_tex = &state->tex_info.tex_list[state->tex_info.current_tex];
     float v1[4], v2[4], v3[4], c1[4], c2[4], c3[4], t1[2]={0}, t2[2]={0}, t3[2]={0};
-    float tex_width = state->cur_tex->width*4.0f - 1.0f;
-    float tex_height= state->cur_tex->height*4.0f - 1.0f;
+    float tex_width = cur_tex->width*4.0f - 1.0f;
+    float tex_height= cur_tex->height*4.0f - 1.0f;
     uint32_t vs = state->vertex_size;
 
     hfx_set_mode(state);

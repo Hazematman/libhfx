@@ -11,6 +11,7 @@ uint32_t hfx_read_reg(uint32_t addr);
 void *hfx_display_get_pointer(hfx_state *state);
 void hfx_init_caps(hfx_state *state);
 void hfx_set_mode(hfx_state *state);
+void hfx_init_textures(hfx_state *state);
 
 void hfx_wait_us(uint64_t num_us);
 void hfx_fatal_error(hfx_state *state, char *msg);

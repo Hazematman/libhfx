@@ -4,6 +4,37 @@
 #include <hfx_rb.h>
 #include <hfx_rdp.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+void hfx_init_textures(hfx_state *state)
+{
+    state->tex_info.current_tex = 0;
+    state->tex_info.num_texs = HFX_MIN_TEXTURES;
+    state->tex_info.tex_list = (hfx_tex_info*)malloc(state->tex_info.num_texs*sizeof(hfx_tex_info));
+    for(int i = 0; i < state->tex_info.num_texs; i++)
+    {
+        state->tex_info.tex_list[i].alloced = false;
+    }
+}
+
+void hfx_gen_textures(hfx_state *state, uint32_t n, uint32_t *textures)
+{
+    for(int i = 0; i < n; i++)
+    {
+        bool found = false;
+        for(int j = 0; j < state->tex_info.num_texs; j++)
+        {
+            if(state->tex_info.tex_list[j].alloced == false)
+            {
+                found = true;
+                textures[i] = j; 
+            }
+            
+            // TODO if found is false realloc array
+            // Right now only 16 textures can exist
+        }
+    }
+}
 
 void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t internalformat, uint32_t width, uint32_t height, int32_t border, uint32_t format, uint32_t type, const void *data)
 {
@@ -11,6 +42,7 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
     uint32_t size_in_bytes = width*2; // TODO This is hardcoded uint16
     uint32_t round_amt = (size_in_bytes%8) ? 1 : 0;
     uint32_t size_in_words = (size_in_bytes/8) + round_amt;
+    uint32_t current_tex = state->tex_info.current_tex;
 
     // TODO probably need to verify that texture data is 64 byte aligned
     cmds[0] = HFX_RDP_PKT_SYNC_LOAD;
@@ -40,7 +72,7 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
 
     hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
 
-    state->cur_tex->width = width;
-    state->cur_tex->height = height;
-    state->cur_tex->type = HFX_UNSIGNED_SHORT_5_5_5_1;
+    state->tex_info.tex_list[current_tex].width = width;
+    state->tex_info.tex_list[current_tex].height = height;
+    state->tex_info.tex_list[current_tex].type = HFX_UNSIGNED_SHORT_5_5_5_1;
 }

@@ -63,6 +63,7 @@ void hfx_color_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t 
 void hfx_tex_coord_pointer(hfx_state *state, uint32_t size, uint32_t type, uint32_t stride, void *data);
 void hfx_draw_arrays(hfx_state *state, uint32_t type, uint32_t start, uint32_t count);
 
+void hfx_gen_textures(hfx_state *state, uint32_t n, uint32_t *textures);
 void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t internalformat, uint32_t width, uint32_t height, int32_t border, uint32_t format, uint32_t type, const void *data);
 
 #endif

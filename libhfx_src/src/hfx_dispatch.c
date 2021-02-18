@@ -73,6 +73,11 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count)
     hfx_draw_arrays(g_hfx_state, mode, first, count);
 }
 
+void glGenTextures(GLsizei n, GLuint *textures)
+{
+    hfx_gen_textures(g_hfx_state, n, (uint32_t*)textures);
+}
+
 void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 {
     hfx_tex_image_2d(g_hfx_state, target, level, internalformat, width, height, border, format, type, (void*)pixels);
