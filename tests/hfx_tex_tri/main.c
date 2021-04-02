@@ -75,7 +75,6 @@ void load_tex_dat()
                     tex_data[j*16 + i] = RGBA8_TO_RGBA5551(0x00u,0x00u,0xffu,0xffu);
                 }
             }
-            
         }
     }
 

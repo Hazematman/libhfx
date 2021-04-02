@@ -5,6 +5,10 @@
 #include <hfx_rdp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define TEXTURE_ALIGN 64
+#define ALIGN_64BYTE(x)     ((void *)(((uint32_t)(x)+63) & 0xFFFFFFC0))
 
 void hfx_init_textures(hfx_state *state)
 {
@@ -14,7 +18,12 @@ void hfx_init_textures(hfx_state *state)
     for(int i = 0; i < state->tex_info.num_texs; i++)
     {
         state->tex_info.tex_list[i].alloced = false;
+        state->tex_info.tex_list[i].data = NULL;
     }
+
+    /* Mark default texture 0 as already allocated */
+    /* Required to be conformant with OpenGL */
+    state->tex_info.tex_list[0].alloced = true;
 }
 
 void hfx_gen_textures(hfx_state *state, uint32_t n, uint32_t *textures)
@@ -32,47 +41,25 @@ void hfx_gen_textures(hfx_state *state, uint32_t n, uint32_t *textures)
             
             // TODO if found is false realloc array
             // Right now only 16 textures can exist
+            HFX_UNUSED(found);
         }
     }
 }
 
 void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t internalformat, uint32_t width, uint32_t height, int32_t border, uint32_t format, uint32_t type, const void *data)
 {
-    uint64_t cmds[4];
-    uint32_t size_in_bytes = width*2; // TODO This is hardcoded uint16
-    uint32_t round_amt = (size_in_bytes%8) ? 1 : 0;
-    uint32_t size_in_words = (size_in_bytes/8) + round_amt;
-    uint32_t current_tex = state->tex_info.current_tex;
+    int bpp = 2; // TODO Have function to get proper bit depth
+    uint32_t size = width * height * bpp;
+    hfx_tex_info *cur_tex = &state->tex_info.tex_list[state->tex_info.current_tex];
 
-    // TODO probably need to verify that texture data is 64 byte aligned
-    cmds[0] = HFX_RDP_PKT_SYNC_LOAD;
-    cmds[1] = HFX_RDP_PKT_SET_TEXTURE_IMAGE(HFX_RDP_CMD_SET_TEXTURE_IMAGE_RGBA,
-                                            HFX_RDP_CMD_SET_TEXTURE_IMAGE_16B,
-                                            width-1, (uintptr_t)data);
-    cmds[2] = HFX_RDP_PKT_SET_TILE(HFX_RDP_CMD_SET_TILE_RBGA,
-                                   HFX_RDP_CMD_SET_TILE_16B,
-                                   size_in_words,
-                                   0, // TODO always loading to start of TMEM
-                                   0, // TODO tile desc is set to 0
-                                   0, // TODO palette is hardcoded to 0
-                                   0, // TODO ct set to zero
-                                   0, // TODO mt set to zero
-                                   5, // TODO mask_t hardcoded to 3 bits
-                                   0, // TODO shift_t set to zero
-                                   0, // TODO cs set to zero
-                                   0, // TODO ms set to zero
-                                   5, // TODO mask_s hardcoded to 3 bits
-                                   0 // TODO set shift to zero
-                                   );
-    cmds[3] = HFX_RDP_PKT_LOAD_TILE(0, // TODO set sl to zero
-                                    0, // TODO set tl to zero
-                                    0, // TODO set tile to zero
-                                    (width-1)<<2,
-                                    (height-1)<<2);
+    cur_tex->unsafe_data = malloc(size + (TEXTURE_ALIGN));
+    cur_tex->data = ALIGN_64BYTE(cur_tex->unsafe_data);
 
-    hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+    memcpy(cur_tex->data, data, size);
+    data_cache_hit_writeback_invalidate(cur_tex->data, size);
 
-    state->tex_info.tex_list[current_tex].width = width;
-    state->tex_info.tex_list[current_tex].height = height;
-    state->tex_info.tex_list[current_tex].type = HFX_UNSIGNED_SHORT_5_5_5_1;
+    cur_tex->width = width;
+    cur_tex->height = height;
+    cur_tex->type = HFX_UNSIGNED_SHORT_5_5_5_1;
+    state->tex_info.dirty = true;
 }

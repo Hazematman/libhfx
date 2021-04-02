@@ -2,3 +2,4 @@ build
 builddir
 *.o
 dev.sh
+*.swp

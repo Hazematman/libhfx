@@ -20,6 +20,7 @@ typedef struct hfx_tex_info {
     uint32_t height;
     uint32_t type;
     void *data;
+    void *unsafe_data;
     bool alloced;
 } hfx_tex_info;
 
@@ -47,6 +48,7 @@ struct hfx_state {
         uint32_t current_tex;
         uint32_t num_texs;
         hfx_tex_info *tex_list;
+        bool dirty;
     } tex_info;
 
     hfx_tex_info *cur_tex;

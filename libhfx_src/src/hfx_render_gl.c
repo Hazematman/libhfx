@@ -59,8 +59,11 @@ void hfx_set_mode(hfx_state *state)
     bool is_two_cycle = false; // TODO figure out when we need two cycle
     uint64_t mode = 0;
     uint64_t combine_mode = 0;
-    uint64_t cmds[2];
+    uint64_t cmds[4];
+    uint32_t cmd_index = 0;
     uint32_t combine_mode_type = HFX_RDP_CMD_SET_COMBINE_MODE_SHADE;
+    hfx_tex_info *cur_tex = &state->tex_info.tex_list[state->tex_info.current_tex];
+
 
     /* Only update the mode if we need to */
     if(state->caps.dirty)
@@ -107,13 +110,52 @@ void hfx_set_mode(hfx_state *state)
                         (combine_mode_type<<HFX_RDP_CMD_SET_COMBINE_MODE_ALPHA_D_1_SHIFT);
 
         /* Send commands to the RDP */
-        cmds[0] = HFX_RDP_PKT_SET_MODE(mode);
-        cmds[1] = HFX_RDP_PKT_SET_COMBINE_MODE(combine_mode);
+        cmd_index = 0;
+        cmds[cmd_index++] = HFX_RDP_PKT_SET_MODE(mode);
+        cmds[cmd_index++] = HFX_RDP_PKT_SET_COMBINE_MODE(combine_mode);
 
-        hfx_cmd_rdp(state, sizeof(cmds)/sizeof(uint64_t), cmds);
+        hfx_cmd_rdp(state, cmd_index, cmds);
 
         state->caps.dirty = false;
         state->rdp_mode = mode;
+    }
+
+    if(state->tex_info.dirty && cur_tex->data != NULL)
+    {
+        uint32_t size_in_bytes = cur_tex->width*2; // TODO This is hardcoded uint16
+        uint32_t round_amt = (size_in_bytes%8) ? 1 : 0;
+        uint32_t size_in_words = (size_in_bytes/8) + round_amt;
+
+        // TODO probably need to verify that texture data is 64 byte aligned
+        cmd_index = 0;
+        cmds[cmd_index++] = HFX_RDP_PKT_SYNC_LOAD;
+        cmds[cmd_index++] = HFX_RDP_PKT_SET_TEXTURE_IMAGE(HFX_RDP_CMD_SET_TEXTURE_IMAGE_RGBA,
+                                                          HFX_RDP_CMD_SET_TEXTURE_IMAGE_16B,
+                                                          cur_tex->width-1, 
+                                                          (uintptr_t)cur_tex->data);
+        cmds[cmd_index++] = HFX_RDP_PKT_SET_TILE(HFX_RDP_CMD_SET_TILE_RBGA,
+                                                 HFX_RDP_CMD_SET_TILE_16B,
+                                                 size_in_words,
+                                                 0, // TODO always loading to start of TMEM
+                                                 0, // TODO tile desc is set to 0
+                                                 0, // TODO palette is hardcoded to 0
+                                                 0, // TODO ct set to zero
+                                                 0, // TODO mt set to zero
+                                                 5, // TODO mask_t hardcoded to 3 bits
+                                                 0, // TODO shift_t set to zero
+                                                 0, // TODO cs set to zero
+                                                 0, // TODO ms set to zero
+                                                 5, // TODO mask_s hardcoded to 3 bits
+                                                 0 // TODO set shift to zero
+                                                 );
+        cmds[cmd_index++] = HFX_RDP_PKT_LOAD_TILE(0, // TODO set sl to zero
+                                                  0, // TODO set tl to zero
+                                                  0, // TODO set tile to zero
+                                                  (cur_tex->width-1)<<2,
+                                                  (cur_tex->height-1)<<2);
+
+        hfx_cmd_rdp(state, cmd_index, cmds);
+        state->tex_info.dirty = false;
     }
 }
 
@@ -189,19 +231,29 @@ void hfx_clear(hfx_state *state, uint32_t bits)
                                    HFX_RDP_CMD_SET_MODE_ALPHA_NO_DITHER) ;
     if(bits & HFX_DEPTH_BUFFER_BIT)
     {
-        uint32_t packed_color = (HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0)<<16 | HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0));
-        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, 0x1ffffff&(uintptr_t)hfx_depth_buffer);
+        uint32_t packed_color = (HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0)<<16 | 
+                                 HFX_PACK_Z_VALUE(HFX_MAX_DEPTH_VALUE,0));
+        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, 
+                                                    HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B,
+                                                    state->display_dim.width, 
+                                                    0x1ffffff&(uintptr_t)hfx_depth_buffer);
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
-        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
-        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, state->display_dim.width, hfx_display_get_pointer(state));
+        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2,
+                                              state->display_dim.height << 2, 0, 0);
+        cmds[index++] = HFX_RDP_PKT_SET_COLOR_IMAGE(HFX_RDP_CMD_SET_COLOR_IMAGE_FORMAT_RGBA, 
+                                                    HFX_RDP_CMD_SET_COLOR_IMAGE_SIZE_16B, 
+                                                    state->display_dim.width,
+                                                    hfx_display_get_pointer(state));
     }
 
     /* If we are clearing color buffer */
     if(bits & HFX_COLOR_BUFFER_BIT)
     {
-        uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g, state->clear_color.b, state->clear_color.a);
+        uint32_t packed_color = RGBA8_TO_PACKED(state->clear_color.r, state->clear_color.g,
+                                                state->clear_color.b, state->clear_color.a);
         cmds[index++] = HFX_RDP_PKT_SET_FILL_COLOR(packed_color);
-        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, state->display_dim.height << 2, 0, 0);
+        cmds[index++] = HFX_RDP_PKT_FILL_RECT(state->display_dim.width << 2, 
+                                              state->display_dim.height << 2, 0, 0);
     }
     cmds[index++] = HFX_RDP_PKT_SET_MODE(state->rdp_mode);
 
@@ -288,7 +340,8 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
             if(good[prev_index])
             {
                 float t1 = (prev_vert->pos[3] - prev_vert->pos[2]) / 
-                          ((prev_vert->pos[3] - prev_vert->pos[2]) - (cur_vert->pos[3] - cur_vert->pos[2]));
+                           ((prev_vert->pos[3] - prev_vert->pos[2]) - 
+                           (cur_vert->pos[3] - cur_vert->pos[2]));
                 /* Add t1 interpolated vert */
                 output_verts[index++] = hfx_lerp_vert(prev_vert, cur_vert, t1);
             }
@@ -296,7 +349,8 @@ void hfx_draw_tri_f(hfx_state *state, float *v1, float *v2, float *v3, float *vc
             if(good[prev2_index])
             {
                 float t2 = (prev2_vert->pos[3] - prev2_vert->pos[2]) / 
-                          ((prev2_vert->pos[3] - prev2_vert->pos[2]) - (cur_vert->pos[3] - cur_vert->pos[2]));
+                           ((prev2_vert->pos[3] - prev2_vert->pos[2]) - 
+                           (cur_vert->pos[3] - cur_vert->pos[2]));
                 /* Add t2 interpolated vert */
                 output_verts[index++] = hfx_lerp_vert(prev2_vert, cur_vert, t2);
             }
