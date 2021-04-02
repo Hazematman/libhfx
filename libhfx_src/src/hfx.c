@@ -12,7 +12,7 @@
 
 #define RDP_TIMEOUT (1*1000*1000)
 
-#define COUNT_PER_US (COUNTS_PER_SECOND / 1000 / 1000)
+#define COUNT_PER_US (TICKS_PER_SECOND / 1000 / 1000)
 #define HFX_DEBUG
 
 extern const void _hfx_ucode_data_start;
