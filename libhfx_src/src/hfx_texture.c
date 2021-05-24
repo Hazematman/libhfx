@@ -56,6 +56,8 @@ void hfx_tex_image_2d(hfx_state *state, uint32_t target, int32_t level, int32_t 
     cur_tex->data = ALIGN_64BYTE(cur_tex->unsafe_data);
 
     memcpy(cur_tex->data, data, size);
+	/* Need to flush and invalidate cache so texture memory is commited
+	 * to RAM and visible by the RDP */
     data_cache_hit_writeback_invalidate(cur_tex->data, size);
 
     cur_tex->width = width;
