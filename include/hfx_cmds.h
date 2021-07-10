@@ -25,7 +25,7 @@
 #define HFX_CMD_DMA             0x0002
 #define     HFX_CMD_DMA_TYPE_READ   (0 << HFX_CMD_ARG_SHIFT)
 #define     HFX_CMD_DMA_TYPE_WRITE  (1 << HFX_CMD_ARG_SHIFT)
-#define HFX_CMD_SET_DISPLAY     0x0003
+#define HFX_CMD_BLANK_CMD       0x0003 /* TODO this command is unused and can be replaced */
 #define HFX_CMD_SEND_RDP        0x0004
 #define HFX_CMD_TRI             0x0005
 #define     HFX_CMD_TRI_3D      (0 << HFX_CMD_ARG_SHIFT)

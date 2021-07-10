@@ -139,16 +139,6 @@ void hfx_rdp_submit()
                  :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
 }
 
-void hfx_cmd_set_display(uint32_t rb_start)
-{
-    uint32_t disp_addr = HFX_READ_RB(1);
-
-    hfx_rdp_reserve(sizeof(uint32_t)*2);
-    hfx_rdp_queue(0xFF10013F);
-    hfx_rdp_queue(disp_addr);
-    hfx_rdp_submit();
-}
-
 void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
 {
     hfx_rdp_reserve(sizeof(uint32_t)*num_cmds);
@@ -193,10 +183,6 @@ int main()
             case HFX_CMD_DMA:
                 hfx_cmd_dma(cmd>>8, rb_start);
                 rb_start += 16;
-                break;
-            case HFX_CMD_SET_DISPLAY:
-                hfx_cmd_set_display(rb_start);
-                rb_start += 8;
                 break;
             case HFX_CMD_SEND_RDP:
                 num_rdp_cmds = cmd >> 8;
