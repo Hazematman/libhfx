@@ -1,26 +1,17 @@
-MEMORY
-{
-    ROM : ORIGIN = 0x0000, LENGTH = 4k
-}
-
 SECTIONS
 {
-    OVERLAY 0x0000 :
+    .data 0x0000 : AT (0x04000000)
     {
-        .text 
-        { 
-            "crt.o"(.text)
-            *(.text*) 
-        }
+        "crt.o"(.data)
+        *(.*data*)
+        *(.*bss*)
+    }
 
-        .data 
-        {
-            "crt.o"(.data)
-            *(.*data*)
-        }
-    } > ROM
-
-    .bss : {*(.*bss*)} > ROM
+    .text 0x0000 : AT (0x04001000)
+    {
+        "crt.o"(.text)
+        *(.text*)
+    }
 
     /DISCARD/ :
     {
