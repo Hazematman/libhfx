@@ -19,8 +19,8 @@ draw_tri:
     // Compute 1/(y3-y1)
     // This follows RSP doc pg. 79 for how to compute
     // the receipricol and then multiply by 2
-    vrcph $v16, 1, $v10, 0
-    vrcpl $v17, 1, $v11, 0
+    vrcph $v16, 1, $v10, 1
+    vrcpl $v17, 1, $v11, 1
     vrcph $v16, 1, $v00, 0
 
     vmudn $v19, $v17, $v02, 9 // e1 contains constant 2
@@ -36,8 +36,8 @@ draw_tri:
     // Compute 1/(y2-y1)
     // This follows RSP doc pg. 79 for how to compute
     // the receipricol and then multiply by 2
-    vrcph $v18, 1, $v12, 0
-    vrcpl $v19, 1, $v13, 0
+    vrcph $v18, 1, $v12, 1
+    vrcpl $v19, 1, $v13, 1
     vrcph $v18, 1, $v00, 0
 
     vmudn $v21, $v19, $v02, 9 // e1 contains constant 2
@@ -53,8 +53,8 @@ draw_tri:
     // Compute 1/(y3-y2)
     // This follows RSP doc pg. 79 for how to compute
     // the receipricol and then multiply by 2
-    vrcph $v20, 1, $v14, 0
-    vrcpl $v21, 1, $v15, 0
+    vrcph $v20, 1, $v14, 1
+    vrcpl $v21, 1, $v15, 1
     vrcph $v20, 1, $v00, 0
 
     vmudn $v23, $v21, $v02, 9 // e1 contains constant 2
