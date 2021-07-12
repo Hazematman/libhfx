@@ -22,9 +22,9 @@ volatile uint32_t hfx_rdb_buffer[HFX_RDP_BUFFER_SIZE] __attribute__((aligned(8))
 static uint32_t hfx_rb_end;
 static uint32_t hfx_rdp_start, hfx_rdp_end;
 
-void hfx_rdp_submit();
+static void hfx_rdp_submit();
 
-void hfx_check_rb_ptr()
+static void hfx_check_rb_ptr()
 {
     uint32_t status;
     uint32_t rb_end = HFX_READ_REG(HFX_REG_RB_END);
@@ -53,7 +53,7 @@ void hfx_check_rb_ptr()
     return;
 }
 
-void hfx_cmd_dma(bool write, uint32_t rb_start)
+static void hfx_cmd_dma(bool write, uint32_t rb_start)
 {
     uint32_t dma_dmem_addr = HFX_READ_RB(1);
     uint32_t dma_mem_addr = HFX_READ_RB(2);
@@ -84,7 +84,7 @@ void hfx_cmd_dma(bool write, uint32_t rb_start)
     return;
 }
 
-void hfx_rdp_init()
+static void hfx_rdp_init()
 {
     hfx_rdp_start = 0;
     hfx_rdp_end = 0;
@@ -99,12 +99,12 @@ void hfx_rdp_init()
                     "r"(hfx_rdb_buffer));
 }
 
-uint32_t hfx_rdp_size()
+static uint32_t hfx_rdp_size()
 {
     return hfx_rdp_end - hfx_rdp_start;
 }
 
-void hfx_rdp_reserve(uint32_t num_bytes)
+static void hfx_rdp_reserve(uint32_t num_bytes)
 {
     uint32_t rdp_size = hfx_rdp_size();
     HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)|HFX_STATUS_IN_RDP_RESERVE);
@@ -133,13 +133,13 @@ void hfx_rdp_reserve(uint32_t num_bytes)
     HFX_WRITE_REG(HFX_REG_STATUS, HFX_READ_REG(HFX_REG_STATUS)&(~HFX_STATUS_IN_RDP_RESERVE));
 }
 
-void hfx_rdp_submit()
+static void hfx_rdp_submit()
 {
     asm volatile("mtc0 %0, $9"
                  :: "r"(OFFSET_OF(hfx_rdb_buffer, hfx_rdp_end)));
 }
 
-void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
+static void hfx_cmd_set_rdp(uint32_t rb_start, uint32_t num_cmds)
 {
     hfx_rdp_reserve(sizeof(uint32_t)*num_cmds);
 

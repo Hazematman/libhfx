@@ -33,7 +33,7 @@ src_files = [
     'src/hfx_dispatch.c',
 ]
 
-ucode_src_dir = './ucode_src/'
+ucode_src_dir = './ucode_src/src/'
 ucode_files = [
     'crt.S',
     'hfx_ucode.c',

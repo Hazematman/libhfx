@@ -1,5 +1,6 @@
 #ifndef HFX_INT_H
 #define HFX_INT_H
+#include <hfx.h>
 #include <stdint.h>
 
 #define HFX_UNUSED(x) (void)(x)
@@ -15,6 +16,8 @@ void hfx_init_textures(hfx_state *state);
 
 void hfx_wait_us(uint64_t num_us);
 void hfx_fatal_error(hfx_state *state, char *msg);
+
+uint32_t hfx_float_to_fixed(float a);
 
 /* Internal HFX cmds */
 void hfx_cmd_nop(hfx_state *state);

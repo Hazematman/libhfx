@@ -20,33 +20,46 @@ prj_root = meson.source_root() + '/..'
 n64_tool_path = run_command('sh' + exe_extension, '-c', 'echo $N64_INST').stdout().strip()
 
 test_dict = {
-    'basic_rb_test' : [
-        'main.c'
-    ],
-    'basic_rdp_test' : [
-        'main.c'
-    ],
-    'rdp_buffer_wrap' : [
-        'main.c'
-    ],
-    'hfx_clear' : [
-        'main.c'
-    ],
-    'hfx_draw_single_tri' : [
-        'main.c'
-    ],
-    'hfx_cube' : [
-        'main.c'
-    ],
-    'hfx_tex_tri' : [
-        'main.c'
-    ],
-    'hfx_persp' : [
-        'main.c'
-    ],
-    'hfx_persp_tex' : [
-        'main.c'
-    ],
+    'basic_rb_test' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'basic_rdp_test' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'rdp_buffer_wrap' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_clear' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_draw_single_tri' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_cube' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_tex_tri' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_persp' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'hfx_persp_tex' : {
+        'src' : ['main.c'],
+        'ucode_src' : [],
+    },
+    'ucode_tri' : {
+        'src' : ['main.c'],
+        'ucode_src' : ['ucode.c', 'ucode_asm.S'],
+    },
 }
 
 # Change compiler flags here
@@ -79,6 +92,45 @@ ldflags = [
 '-Tn64.ld',
 ]
 
+ucode_cflags = [
+'-I'+prj_root+'/include',
+'-I'+prj_root+'/ucode_src/include',
+'-std=gnu99',
+'-Wall',
+'-march=vr4300',
+'-mtune=vr4300',
+'-Os',
+'-mno-branch-likely',
+'-mno-llsc',
+'-Wall',
+'-mabi=eabi',
+'-mgp32',
+'-flto',
+'-MMD',
+'-EB',
+]
+
+ucode_ldflags = [
+'-I'+prj_root+'/include',
+'-I'+prj_root+'/ucode_src/include',
+'-Wall',
+'-march=vr4300',
+'-mtune=vr4300',
+'-mabi=eabi',
+'-mgp32',
+'-ffreestanding',
+'-nostdlib',
+'-Os',
+'-mno-branch-likely',
+'-mno-llsc',
+'-flto',
+'-EB',
+]
+
+ucode_linker_script = prj_root+'/ucode.ld'
+ucode_crt = prj_root+'/ucode_src/src/crt.S'
+ucode_loader = meson.source_root()+'/loader.S'
+
 #####################################
 
 # Build all c source files
@@ -87,19 +139,59 @@ object_generator = generator(mips_compiler,
     arguments : cflags + ['-c', '@INPUT@', '-o', '@OUTPUT@'],
     depfile : '@BASENAME@.d')
 
-foreach test, sources : test_dict
+ucode_object_generator = generator(mips_compiler,
+    output : '@BASENAME@.o',
+    arguments : ucode_cflags + ['-c', '@INPUT@', '-o', '@OUTPUT@'],
+    depfile : '@BASENAME@.d')
+
+foreach test, test_sources : test_dict
     source_files = []
-    foreach source : sources
+    foreach source : test_sources['src']
         file = meson.source_root() + '/' + test + '/' + source
         source_files += [file]
     endforeach
+
+    ucode_deps = []
+
+    if 0 != test_sources['ucode_src'].length()
+        ucode_source_files = [ucode_crt]
+        foreach source : test_sources['ucode_src']
+            file = meson.source_root() + '/' + test + '/' + source
+            ucode_source_files += [file]
+        endforeach
+
+        ucode_object_files = ucode_object_generator.process(ucode_source_files)
+
+        # Build ucode into elf file
+        ucode_elf_file = custom_target(test+'_ucode_elf',
+           output : test+'.ucode.elf',
+           input : ucode_object_files,
+           depend_files : ucode_linker_script,
+           command : [mips_compiler] + ucode_ldflags + ['@INPUT@', '-o', '@OUTPUT@', '-T', ucode_linker_script])
+
+        # convert ucode elf into bin files
+        ucode_bin = custom_target(test+'_ucode_bin',
+            output : [test+'_ucode_text.bin', test+'_ucode_data.bin'],
+            input : ucode_elf_file,
+            command : [mips_objcopy, '--dump-section', '.text='+test+'_ucode_text.bin', 
+                       '--dump-section', '.data='+test+'_ucode_data.bin', '@INPUT@'])
+
+        ucode_loader = custom_target(test+'_ucode_loader',
+            output : '@BASENAME@.o',
+            input : ucode_loader,
+            depfile : '@BASENAME@.d',
+            depends : ucode_bin,
+            command : [mips_compiler] + cflags + ['-c', '@INPUT@', '-o', '@OUTPUT@'])
+
+        ucode_deps += [ucode_loader]
+    endif
     
     object_files = object_generator.process(source_files)
 
     # Build final elf file
     elf_file = custom_target(test+'_elf',
         output : test+'.elf',
-        input : [object_files],
+        input : [object_files] + ucode_deps,
         depend_files : hfx_lib_name,
         command : [mips_linker, '-o', '@OUTPUT@', '@INPUT@'] + ldflags)
         
