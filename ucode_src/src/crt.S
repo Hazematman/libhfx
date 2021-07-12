@@ -15,7 +15,7 @@ _start:
 
     li $2, 2
     mtc2 v0, $v02, 0 
-    vaddc $v02, $v02, $v00, 8
+    vaddc $v02, $v00, $v02, 8
 
     /* Jump to main function */
     jal main

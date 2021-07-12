@@ -53,12 +53,16 @@ int main(void)
     load_ucode((void*)&_ucode_start, ucode_size);
 
     float x1 = 100.0f, y1 = 30.0f;
-    float x2 = 100.0f, y2 = 100.0f;
+    float x2 = 120.0f, y2 = 100.0f;
     float x3 = 30.0f, y3 = 150.0f;
 
     uint32_t ix1 = hfx_float_to_fixed(x1), iy1 = hfx_float_to_fixed(y1);
     uint32_t ix2 = hfx_float_to_fixed(x2), iy2 = hfx_float_to_fixed(y2);
     uint32_t ix3 = hfx_float_to_fixed(x3), iy3 = hfx_float_to_fixed(y3);
+
+    float exp_x1 = (x3-x1)/(y3-y1);
+    float exp_x2 = (x2-x1)/(y2-y1);
+    float exp_x3 = (x3-x2)/(y3-y2);
 
     write_dmem(0*8, ix1>>16);
     write_dmem(0*8+1, iy1>>16);
@@ -106,11 +110,10 @@ int main(void)
             x3 = ((float)(int)ix3) / 65536.0f;
 
             printf("Done!\n");
-            printf("x1 0x%X y1 0x%X %f\n", (int)ix1, (int)iy1, x1);
-            printf("x2 0x%X y2 0x%X %f\n", (int)ix2, (int)iy2, x2);
-            printf("x3 0x%X y3 0x%X %f\n", (int)ix3, (int)iy3, x3);
-            printf("pc 0x%X\n", *(volatile uint32_t*)0xa4080000);
-            printf("status 0x%X\n", *(volatile uint32_t*)0xa4040010);
+            printf("fixed 0x%X float %f expecting %f\n", (int)ix1, x1, exp_x1);
+            printf("fixed 0x%X float %f expecting %f\n", (int)ix2, x2, exp_x2);
+            printf("fixed 0x%X float %f expecting %f\n", (int)ix3, x3, exp_x3);
+
             console_render();
         }
     }
