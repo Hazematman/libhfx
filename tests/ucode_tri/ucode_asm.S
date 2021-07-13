@@ -21,5 +21,7 @@ output_data:
     sqv $v19, 0, 3, $0
     sqv $v20, 0, 4, $0
     sqv $v21, 0, 5, $0 
+    sqv $v14, 0, 6, $0
+    sqv $v15, 0, 7, $0
     jr $ra
     nop

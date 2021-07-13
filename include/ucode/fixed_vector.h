@@ -22,9 +22,9 @@
 .set w6, 0b1110
 .set w7, 0b1111
 
-.macro add_fixed res_hi, res_lo, a_hi, a_lo, b_hi, b_lo
-    vaddc \res_lo, \a_lo, \b_lo, 0
-    vadd  \res_hi, \a_hi, \b_hi, 0
+.macro add_fixed res_hi, res_lo, a_hi, a_lo, b_hi, b_lo, e=0
+    vaddc \res_lo, \a_lo, \b_lo, \e
+    vadd  \res_hi, \a_hi, \b_hi, \e
 .endm
 
 .macro sub_fixed res_hi, res_lo, a_hi, a_lo, b_hi, b_lo
@@ -32,11 +32,11 @@
     vsub    \res_hi, \a_hi, \b_hi, 0
 .endm
 
-.macro mul_fixed res_hi, res_lo, a_hi, a_lo, b_hi, b_lo
-    vmudl \res_lo, \a_lo, \b_lo, 0
-    vmadm \res_lo, \a_hi, \b_lo, 0
-    vmadn \res_hi, \a_lo, \b_hi, 0
-    vmadh \res_lo, \a_hi, \b_hi, 0
+.macro mul_fixed res_hi, res_lo, a_hi, a_lo, b_hi, b_lo, e=0
+    vmudl \res_hi, \a_lo, \b_lo, \e
+    vmadm \res_hi, \a_hi, \b_lo, \e
+    vmadn \res_lo, \a_lo, \b_hi, \e
+    vmadh \res_hi, \a_hi, \b_hi, \e
 .endm
 
 

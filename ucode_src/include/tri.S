@@ -1,7 +1,7 @@
 #include <ucode/fixed_vector.h> 
 
     
-// Assume vertex data is the following
+// Assume vertex data is the following format
 // v04,v05 v1
 // v06,v07 v2
 // v08,v09 v3
@@ -67,10 +67,51 @@ draw_tri:
     vmadm $v20, $v14, $v23, h1
     vmadn $v21, $v00, $v00, 0
 
-    // We have now computed DxHDy, DxMDy, DxLDy
+    // We have now computed DxHDy(v16,v17)  DxMDy(v18,v19), DxLDy(v20,v21)
     // We need to calculate the triangle winding order with
     // a the calculation of (x1*y2 - x2*y1) + (x2*y3 - x3*y2) + (x3*y1 - x1*y3)
     // and we can check if the triangle is flipped based on if the result is positive
+
+    // In order to perform a cross product we need vectors that look like a=(x1, x2, x3)
+    // and b=(y1,y2,y3), c=(x2,x3,x1), d=(y2,y3,y1)
+    // Then we can do r=(a*d) - (c*b) and accumlate the results of this vector (r[0]+r[1]+r[2])
+    // to obtain the winding value
+    vmov $v10, 0, $v04, w0
+    vmov $v10, 1, $v06, w0
+    vmov $v10, 2, $v08, w0
+    vmov $v11, 0, $v05, w0
+    vmov $v11, 1, $v07, w0
+    vmov $v11, 2, $v09, w0
+
+    vmov $v12, 0, $v04, w1
+    vmov $v12, 1, $v06, w1
+    vmov $v12, 2, $v08, w1
+    vmov $v13, 0, $v05, w1
+    vmov $v13, 1, $v07, w1
+    vmov $v13, 2, $v09, w1
+
+    vmov $v14, 0, $v10, w1
+    vmov $v14, 1, $v10, w2
+    vmov $v14, 2, $v10, w0
+    vmov $v15, 0, $v11, w1
+    vmov $v15, 1, $v11, w2
+    vmov $v15, 2, $v11, w0
+
+    vmov $v22, 0, $v12, w1
+    vmov $v22, 1, $v12, w2
+    vmov $v22, 2, $v12, w0
+    vmov $v23, 0, $v13, w1
+    vmov $v23, 1, $v13, w2
+    vmov $v23, 2, $v13, w0
+
+    mul_fixed $v24, $v25, $v10, $v11, $v22, $v23
+    mul_fixed $v26, $v27, $v12, $v13, $v14, $v15
+    sub_fixed $v10, $v11, $v24, $v25, $v26, $v27
+
+    // $v10,$v11 no contains the cross product of the (x1,x2,x3) (y1,y2,y3), we need to accumlate
+    // the result[0] + result[1] + result[2]
+    add_fixed $v12, $v13, $v10, $v11, $v10, $v11, w1
+    add_fixed $v14, $v15, $v12, $v13, $v10, $v11, w2
 
     jr $ra
     nop

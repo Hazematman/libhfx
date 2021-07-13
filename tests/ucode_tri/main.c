@@ -64,6 +64,8 @@ int main(void)
     float exp_x2 = (x2-x1)/(y2-y1);
     float exp_x3 = (x3-x2)/(y3-y2);
 
+    float winding = (x1*y2 - x2*y1) + (x2*y3 - x3*y2) + (x3*y1 - x1*y3);
+
     write_dmem(0*8, ix1>>16);
     write_dmem(0*8+1, iy1>>16);
     write_dmem(1*8, ix1);
@@ -105,14 +107,20 @@ int main(void)
             ix3 |= read_dmem(5*8);
             iy3 |= read_dmem(5*8+1);
 
+            uint32_t iw = 0;
+            iw = read_dmem(6*8) << 16;
+            iw |= read_dmem(7*8);
+
             x1 = ((float)(int)ix1) / 65536.0f;
             x2 = ((float)(int)ix2) / 65536.0f;
             x3 = ((float)(int)ix3) / 65536.0f;
+            float w = ((float)(int)iw) / 65536.0f;
 
             printf("Done!\n");
             printf("fixed 0x%X float %f expecting %f\n", (int)ix1, x1, exp_x1);
             printf("fixed 0x%X float %f expecting %f\n", (int)ix2, x2, exp_x2);
             printf("fixed 0x%X float %f expecting %f\n", (int)ix3, x3, exp_x3);
+            printf("fixed 0x%X float %f expecting %f\n", (int)iw, w, winding);
 
             console_render();
         }
