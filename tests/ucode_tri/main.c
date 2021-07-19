@@ -19,16 +19,25 @@ void sp_handler()
     done = 0;
 }
 
-void write_dmem(uintptr_t offset, uint16_t value)
+void write_dmem(uintptr_t offset, uint16_t value1, uint16_t value2)
 {
-    volatile uint16_t *dmem = (volatile uint16_t*)(0xa4000000);
+    volatile uint32_t *dmem = (volatile uint32_t*)(0xa4000000);
+    uint32_t value = (value1<<16) | value2;
     dmem[offset] = value;
 }
 
 uint32_t read_dmem(uintptr_t offset)
 {
-    volatile uint16_t *dmem = (volatile uint16_t*)(0xa4000000);
+    volatile uint32_t *dmem = (volatile uint32_t*)(0xa4000000);
     return dmem[offset];
+}
+
+void read_dmem_two(uintptr_t offset, uint16_t *v1, uint16_t *v2)
+{
+    volatile uint32_t *dmem = (volatile uint32_t*)(0xa4000000);
+    uint32_t val = dmem[offset];
+    *v1 = val >> 16;
+    *v2 = (uint16_t)val;
 }
 
 int main(void)
@@ -66,20 +75,14 @@ int main(void)
 
     float winding = (x1*y2 - x2*y1) + (x2*y3 - x3*y2) + (x3*y1 - x1*y3);
 
-    write_dmem(0*8, ix1>>16);
-    write_dmem(0*8+1, iy1>>16);
-    write_dmem(1*8, ix1);
-    write_dmem(1*8+1, iy1);
+    write_dmem(0*4, ix1>>16, iy1>>16);
+    write_dmem(1*4, ix1, iy1);
 
-    write_dmem(2*8, ix2>>16);
-    write_dmem(2*8+1, iy2>>16);
-    write_dmem(3*8, ix2);
-    write_dmem(3*8+1, iy2);
+    write_dmem(2*4, ix2>>16, iy2>>16);
+    write_dmem(3*4, ix2, iy2);
 
-    write_dmem(4*8, ix3>>16);
-    write_dmem(4*8+1, iy3>>16);
-    write_dmem(5*8, ix3);
-    write_dmem(5*8+1, iy3);
+    write_dmem(4*4, ix3>>16, iy3>>16);
+    write_dmem(5*4, ix3, iy3);
 
     printf("Running!\n");
     console_render();
@@ -92,24 +95,32 @@ int main(void)
         {
             done = 1;
 
-            ix1 = read_dmem(0*8) << 16;
-            iy1 = read_dmem(0*8+1) << 16;
-            ix1 |= read_dmem(1*8);
-            iy1 |= read_dmem(1*8+1);
+            uint32_t v = read_dmem(0*4);
+            ix1 = (v & 0xFFFF0000);
+            iy1 = (v << 16);
+            v = read_dmem(1*4);
+            ix1 |= (v >> 16);
+            iy1 |= (v & 0x0000FFFF);
 
-            ix2 = read_dmem(2*8) << 16;
-            iy2 = read_dmem(2*8+1) << 16;
-            ix2 |= read_dmem(3*8);
-            iy2 |= read_dmem(3*8+1);
+            v = read_dmem(2*4);
+            ix2 = (v & 0xFFFF0000);
+            iy2 = (v << 16);
+            v = read_dmem(3*4);
+            ix2 |= (v >> 16);
+            iy2 |= (v & 0x0000FFFF);
 
-            ix3 = read_dmem(4*8) << 16;
-            iy3 = read_dmem(4*8+1) << 16;
-            ix3 |= read_dmem(5*8);
-            iy3 |= read_dmem(5*8+1);
+            v = read_dmem(4*4);
+            ix3 = (v & 0xFFFF0000);
+            iy3 = (v << 16);
+            v = read_dmem(5*4);
+            ix3 |= (v >> 16);
+            iy3 |= (v & 0x0000FFFF);
 
+            v = read_dmem(6*4);
             uint32_t iw = 0;
-            iw = read_dmem(6*8) << 16;
-            iw |= read_dmem(7*8);
+            iw = (v & 0xFFFF0000);
+            v = read_dmem(7*4);
+            iw |= (v >> 16);
 
             x1 = ((float)(int)ix1) / 65536.0f;
             x2 = ((float)(int)ix2) / 65536.0f;

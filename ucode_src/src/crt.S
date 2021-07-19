@@ -11,11 +11,17 @@ _start:
 
     /* Initalize vector register */
     mtc2 zero, $v00, 0
-    vaddc $v00, $v00, $v00, 8
+    mtc2 zero, $v00, 1
+    mtc2 zero, $v00, 2
+    mtc2 zero, $v00, 3
+    mtc2 zero, $v00, 4
+    mtc2 zero, $v00, 5
+    mtc2 zero, $v00, 6
+    mtc2 zero, $v00, 7  
 
     li $2, 2
     mtc2 v0, $v02, 0 
-    vaddc $v02, $v00, $v02, 8
+    vaddc $v02, $v00, $v02, w0
 
     /* Jump to main function */
     jal main
