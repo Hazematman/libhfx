@@ -7,6 +7,7 @@
 // v08,v09 v3
 // Also assume verticies are sorted from highest to lowest, 
 // with v1 at the top of the display
+// Also assume that $4 contains a pointer RDP ring buffer
 .global draw_tri
 draw_tri:
     // Calculate x3-x1, y3-y1
@@ -112,6 +113,30 @@ draw_tri:
     // the result[0] + result[1] + result[2]
     add_fixed $v12, $v13, $v10, $v11, $v10, $v11, w1
     add_fixed $v14, $v15, $v12, $v13, $v10, $v11, w2
+
+    // Now store all of these values into the RDP command buffer
+    add $5, $0, $0
+    lui $5, 0x0800
+    mfc2 a2, $v14, 0  
+    slt $6, $0, $6
+    sll $6, $6, 23
+    or $5, $5, $6
+    mfc2 a2, $v08, 0
+
+    ssv $v08, 0, 4, $4
+    ssv $v09, 0, 5, $4
+    ssv $v20, 0, 6, $4
+    ssv $v21, 0, 7, $4
+
+    ssv $v04, 0, 8, $4
+    ssv $v05, 0, 9, $4
+    ssv $v16, 0, 10, $4
+    ssv $v17, 0, 11, $4
+
+    ssv $v06, 0, 12, $4
+    ssv $v07, 0, 13, $4
+    ssv $v18, 0, 14, $4
+    ssv $v19, 0, 15, $4
 
     jr $ra
     nop

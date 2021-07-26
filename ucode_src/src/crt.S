@@ -19,9 +19,13 @@ _start:
     mtc2 zero, $v00, 6
     mtc2 zero, $v00, 7  
 
-    li $2, 2
-    mtc2 v0, $v02, 0 
-    vaddc $v02, $v00, $v02, w0
+    /* Note macros from libdragon for mtc2 use
+     * named registers for the general purpose
+     * registers, so in this case v0 == $2 */
+    li $v0, 2
+    mtc2 v0, $v02, 2 
+    li $v0, 4
+    mtc2 v0, $v02, 4
 
     /* Jump to main function */
     jal main
