@@ -95,43 +95,26 @@ int main(void)
         {
             done = 1;
 
-            uint32_t v = read_dmem(0*4);
-            ix1 = (v & 0xFFFF0000);
-            iy1 = (v << 16);
-            v = read_dmem(1*4);
-            ix1 |= (v >> 16);
-            iy1 |= (v & 0x0000FFFF);
+            uint32_t dxHDy = read_dmem(5);
+            uint32_t dxMDy = read_dmem(7);
+            uint32_t dxLDy = read_dmem(3);
 
-            v = read_dmem(2*4);
-            ix2 = (v & 0xFFFF0000);
-            iy2 = (v << 16);
-            v = read_dmem(3*4);
-            ix2 |= (v >> 16);
-            iy2 |= (v & 0x0000FFFF);
-
-            v = read_dmem(4*4);
-            ix3 = (v & 0xFFFF0000);
-            iy3 = (v << 16);
-            v = read_dmem(5*4);
-            ix3 |= (v >> 16);
-            iy3 |= (v & 0x0000FFFF);
-
-            v = read_dmem(6*4);
-            uint32_t iw = 0;
-            iw = (v & 0xFFFF0000);
-            v = read_dmem(7*4);
-            iw |= (v >> 16);
-
-            x1 = ((float)(int)ix1) / 65536.0f;
-            x2 = ((float)(int)ix2) / 65536.0f;
-            x3 = ((float)(int)ix3) / 65536.0f;
-            float w = ((float)(int)iw) / 65536.0f;
+            x1 = ((float)(int)dxHDy) / 65536.0f;
+            x2 = ((float)(int)dxMDy) / 65536.0f;
+            x3 = ((float)(int)dxLDy) / 65536.0f;
 
             printf("Done!\n");
-            printf("fixed 0x%X float %f expecting %f\n", (int)ix1, x1, exp_x1);
-            printf("fixed 0x%X float %f expecting %f\n", (int)ix2, x2, exp_x2);
-            printf("fixed 0x%X float %f expecting %f\n", (int)ix3, x3, exp_x3);
-            printf("fixed 0x%X float %f expecting %f\n", (int)iw, w, winding);
+            printf("fixed 0x%X float %f expecting %f\n", (int)dxHDy, x1, exp_x1);
+            printf("fixed 0x%X float %f expecting %f\n", (int)dxMDy, x2, exp_x2);
+            printf("fixed 0x%X float %f expecting %f\n\n", (int)dxLDy, x3, exp_x3);
+
+            for(int i=0; i < 4; i++)
+            {
+                uint32_t w1, w2;
+                w1 = read_dmem((i*2 + 0));
+                w2 = read_dmem((i*2 + 1));
+                printf("0x%08X 0x%08X\n", w1, w2);
+            }
 
             console_render();
         }

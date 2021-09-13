@@ -6,7 +6,7 @@ int main()
 {
     setup_data();
     draw_tri();
-    output_data();
+    //output_data();
     asm volatile ("break");
     return 0;
 }

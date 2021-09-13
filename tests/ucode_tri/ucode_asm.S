@@ -2,6 +2,9 @@
 
 .global setup_data
 setup_data:
+    // Initalize $4 to 0
+    li $4, 0 
+
     // Load test data in vector registers
     lqv $v04, 0, 0, $0
     lqv $v05, 0, 1, $0

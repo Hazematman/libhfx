@@ -8,7 +8,7 @@ _start:
     /* Set stack to end of RAM */
     move $gp, $zero
     addi $sp, $0, 0x1000
-
+    
     /* Initalize vector register */
     mtc2 zero, $v00, 0
     mtc2 zero, $v00, 1

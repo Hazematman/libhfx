@@ -121,7 +121,69 @@ draw_tri:
     slt $6, $0, $6
     sll $6, $6, 23
     or $5, $5, $6
-    mfc2 a2, $v08, 0
+
+    // Load YL interger in a2
+    mfc2 a2, $v08, 1
+    // Load YL frac in a3
+    mfc2 a3, $v09, 1
+
+    // Get the upper 2 bits of YL frac and shift them to the start of the register
+    andi $a3, $a3, 0xC000
+    srl $a3, $a3, 14
+    
+    // Get the lower 11 bits and sign of YL int and sift them over two bits to make room for YL frac
+    andi $a2, $a2, 0x1FFF
+    sll $a2, $a2, 2
+
+    // OR YL int and YL frac to combine them
+    or $a2, $a2, $a3
+    
+    // OR YL with the command buffer register
+    or $5, $5, $a2
+
+    // Store first 32bit word of command in RDP command buffer
+    sw $5, 0($4)
+
+    // Load YM interger in a2
+    mfc2 a2, $v06, 1
+    // Load YM frac in a3
+    mfc2 a3, $v07, 1
+
+    // Get the upper 2 bits of YM frac and shift them to the start of the register
+    andi $a3, $a3, 0xC000
+    srl $a3, $a3, 14
+    
+    // Get the lower 11 bits and sign of YM int and sift them over two bits to make room for YM frac
+    andi $a2, $a2, 0x1FFF
+    sll $a2, $a2, 2
+
+    // OR YM int and YM frac to combine them
+    or $a2, $a2, $a3
+
+    // Move YM into upper part of next word
+    sll $5, $a2, 16
+
+    // Load YH interger in a2
+    mfc2 a2, $v04, 1
+    // Load YH frac in a3
+    mfc2 a3, $v05, 1
+
+    // Get the upper 2 bits of YH frac and shift them to the start of the register
+    andi $a3, $a3, 0xC000
+    srl $a3, $a3, 14
+    
+    // Get the lower 11 bits and sign of YH int and sift them over two bits to make room for YH frac
+    andi $a2, $a2, 0x1FFF
+    sll $a2, $a2, 2
+
+    // OR YH int and YH frac to combine them
+    or $a2, $a2, $a3
+
+    // OR YM and YH to combine them
+    or $5, $5, $a2
+
+    // Store second 32bit word of command in RDP buffer
+    sw $5, 4($4)
 
     ssv $v08, 0, 4, $4
     ssv $v09, 0, 5, $4
