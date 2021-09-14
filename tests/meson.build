@@ -60,6 +60,10 @@ test_dict = {
         'src' : ['main.c'],
         'ucode_src' : ['ucode.c', 'ucode_asm.S'],
     },
+    'ucode_sort' : {
+        'src' : ['main.c'],
+        'ucode_src' : ['ucode.c', 'ucode_asm.S'],
+    },
 }
 
 # Change compiler flags here
@@ -129,7 +133,6 @@ ucode_ldflags = [
 
 ucode_linker_script = prj_root+'/ucode.ld'
 ucode_crt = prj_root+'/ucode_src/src/crt.S'
-ucode_loader = meson.source_root()+'/loader.S'
 
 #####################################
 
@@ -176,9 +179,10 @@ foreach test, test_sources : test_dict
             command : [mips_objcopy, '--dump-section', '.text='+test+'_ucode_text.bin', 
                        '--dump-section', '.data='+test+'_ucode_data.bin', '@INPUT@'])
 
+        ucode_loader_file = meson.source_root() + '/' + test + '/loader.S'
         ucode_loader = custom_target(test+'_ucode_loader',
-            output : '@BASENAME@.o',
-            input : ucode_loader,
+            output : test+'_@BASENAME@.o',
+            input : ucode_loader_file,
             depfile : '@BASENAME@.d',
             depends : ucode_bin,
             command : [mips_compiler] + cflags + ['-c', '@INPUT@', '-o', '@OUTPUT@'])
