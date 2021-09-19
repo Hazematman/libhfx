@@ -64,6 +64,10 @@ test_dict = {
         'src' : ['main.c'],
         'ucode_src' : ['ucode.c', 'ucode_asm.S'],
     },
+    'ucode_mul_mat_vec' : {
+        'src' : ['main.c'],
+        'ucode_src' : ['ucode.c', 'ucode_asm.S'],
+    },
 }
 
 # Change compiler flags here
